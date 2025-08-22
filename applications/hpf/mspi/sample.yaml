@@ -1,16 +1,16 @@
 sample:
-  name: HPF mSPI application
-  description: HPF mSPI application
+  name: HPF ws2812 application
+  description: HPF ws2812 application
 common:
   integration_platforms:
     - nrf54l15dk/nrf54l15/cpuflpr
 tests:
-  applications.hpf.mspi:
+  applications.hpf.ws2812:
     build_only: true
     sysbuild: true
     platform_allow: nrf54l15dk/nrf54l15/cpuflpr
     tags:
       - ci_build
       - sysbuild
-      - mspi
+      - ws2812
       - ci_applications_hpf

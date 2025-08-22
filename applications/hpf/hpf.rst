@@ -17,3 +17,4 @@ The following applications are created using HPF:
 
    gpio/README
    mspi/README
+   ws2812/README

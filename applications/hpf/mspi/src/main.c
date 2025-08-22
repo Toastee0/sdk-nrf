@@ -16,7 +16,7 @@
 #include <hal/nrf_timer.h>
 #include <haly/nrfy_gpio.h>
 
-#include <drivers/mspi/hpf_mspi.h>
+#include <drivers/ws2812/hpf_ws2812.h>
 
 #define SUPPORTED_IO_MODES_COUNT 7
 

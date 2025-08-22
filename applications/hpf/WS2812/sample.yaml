@@ -1,0 +1,19 @@
+sample:
+  name: HPF ws2812 application
+  description: HPF ws2812 application
+common:
+  integration_platforms:
+    - nrf54l15dk/nrf54l15/cpuflpr
+    - xiao_nrf54l15/nrf54l15/cpuflpr
+tests:
+  applications.hpf.ws2812:
+    build_only: true
+    sysbuild: true
+    platform_allow:
+      - nrf54l15dk/nrf54l15/cpuflpr
+      - xiao_nrf54l15/nrf54l15/cpuflpr
+    tags:
+      - ci_build
+      - sysbuild
+      - ws2812
+      - ci_applications_hpf
