@@ -1,0 +1,13 @@
+# Copyright (c) 2025 Nordic Semiconductor ASA
+# SPDX-License-Identifier: Apache-2.0
+
+menuconfig LED_STRIP_NRF
+	bool "LED strip drivers for Nordic devices"
+	help
+	  Enable LED strip drivers for Nordic semiconductor devices.
+
+if LED_STRIP_NRF
+
+rsource "Kconfig.ws2812_nrf54l15"
+
+endif # LED_STRIP_NRF

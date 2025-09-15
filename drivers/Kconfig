@@ -20,6 +20,7 @@ rsource "mspi/Kconfig"
 rsource "net/Kconfig"
 rsource "sensor/Kconfig"
 rsource "serial/Kconfig"
+rsource "led_strip/Kconfig"
 
 config HPF
 	bool

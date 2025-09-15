@@ -1,0 +1,30 @@
+/*
+ * Copyright (c) 2025 Nordic Semiconductor ASA
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+/ {
+    aliases {
+        led-strip = &ws2812;
+    };
+
+    ws2812: ws2812 {
+        compatible = "nordic,nrf54l15-ws2812";
+        
+        /* Use P1.06 for LED strip output */
+        gpios = <&gpio1 6 GPIO_ACTIVE_HIGH>;
+        
+        /* Configure for 64 pixel strip */
+        chain-length = <64>;
+        
+        /* Shared memory configuration */
+        shared-mem-addr = <0x20000000>;
+        shared-mem-size = <4096>;
+        
+        /* MBOX configuration for VPR communication */
+        mboxes = <&mbox 0>, <&mbox 1>;
+        mbox-names = "tx", "rx";
+        
+        status = "okay";
+    };
+};

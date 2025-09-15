@@ -1,0 +1,13 @@
+# Copyright (c) 2025 Nordic Semiconductor ASA
+# SPDX-License-Identifier: Apache-2.0
+
+config WS2812_NRF54L15
+	bool "WS2812 LED strip driver for nRF54L15"
+	default y
+	depends on DT_HAS_NORDIC_NRF54L15_WS2812_ENABLED
+	depends on SOC_SERIES_NRF54LX
+	depends on MBOX
+	help
+	  Enable WS2812 LED strip driver for nRF54L15 using the FLPR coprocessor
+	  for deterministic timing. This driver provides hardware-accelerated
+	  WS2812 control with precise timing requirements.
