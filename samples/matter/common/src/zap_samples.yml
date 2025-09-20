@@ -54,3 +54,11 @@
   zap_file: samples/matter/manufacturer_specific/src/default_zap/manufacturer_specific.zap
   full: true
   zcl_file: samples/matter/manufacturer_specific/src/default_zap/zcl.json
+
+# temperature sensor
+- name: temperature_sensor
+  zap_file: samples/matter/temperature_sensor/src/default_zap/temperature_sensor.zap
+
+# contact sensor
+- name: contact_sensor
+  zap_file: samples/matter/contact_sensor/src/default_zap/contact_sensor.zap

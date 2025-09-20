@@ -43,7 +43,7 @@ IPv6 network support
 
 The development kits for this sample offer the following IPv6 network support for Matter:
 
-* Matter over Thread is supported for the ``nrf52840dk/nrf52840``, ``nrf5340dk/nrf5340/cpuapp``, ``nrf21540dk/nrf52840``, and ``nrf54l15dk/nrf54l15/cpuapp`` board targets.
+* Matter over Thread is supported for the ``nrf52840dk/nrf52840``, ``nrf5340dk/nrf5340/cpuapp``, ``nrf21540dk/nrf52840``, ``nrf54l15dk/nrf54l15/cpuapp`` and ``nrf54lm20dk/nrf54lm20a/cpuapp`` board targets.
 * Matter over Wi-Fi is supported for the ``nrf5340dk/nrf5340/cpuapp`` board target with the ``nrf7002ek`` shield attached, for the ``nrf7002dk/nrf5340/cpuapp`` (2.4 GHz and 5 GHz), or ``nrf7002dk/nrf5340/cpuapp/nrf7001`` board targets (2.4 GHz only).
 * :ref:`Switching between Matter over Thread and Matter over Wi-Fi <matter_lock_sample_wifi_thread_switching>` is supported for ``nrf5340dk/nrf5340/cpuapp`` with the ``nrf7002ek`` shield attached, using the :ref:`switched Thread and Wi-Fi configuration <matter_lock_sample_custom_configs>`.
 
@@ -119,25 +119,6 @@ Instead, the factory reset and recommissioning to a Matter fabric allows the dev
 
 See :ref:`matter_lock_sample_custom_configs` and :ref:`matter_lock_sample_switching_thread_wifi` for more information about how to configure and test this feature with this sample.
 
-Wi-Fi firmware on external memory
----------------------------------
-
-.. matter_door_lock_sample_nrf70_firmware_patch_start
-
-You can program a portion of the application code related to the nRF70 Series' Wi-Fi firmware onto an external memory to free up space in the on-chip memory.
-This option is available only when building for the nRF5340 DK with the nRF7002 EK shield attached.
-To prepare an application to use this feature, you need to create additional MCUboot partitions.
-To learn how to configure MCUboot partitions, see the :ref:`nrf70_fw_patch_update_adding_partitions` guide.
-To enable this feature for Matter, set the :kconfig:option:`SB_CONFIG_WIFI_PATCHES_EXT_FLASH_STORE`, :kconfig:option:`SB_CONFIG_DFU_MULTI_IMAGE_PACKAGE_WIFI_FW_PATCH` Kconfig options to ``y``, and set the :kconfig:option:`SB_CONFIG_MCUBOOT_UPDATEABLE_IMAGES` Kconfig option to ``3``.
-
-.. matter_door_lock_sample_nrf70_firmware_patch_end
-
-For example:
-
-   .. code-block:: console
-
-      west build -b nrf5340dk/nrf5340/cpuapp -p -- -Dlock_SHIELD=nrf7002ek  -DFILE_SUFFIX=thread_wifi_switched -DSB_CONFIG_WIFI_PATCHES_EXT_FLASH_STORE=y -DSB_CONFIG_MCUBOOT_UPDATEABLE_IMAGES=3 -DCONFIG_CHIP_DFU_OVER_BT_SMP=y -DSB_CONFIG_WIFI_NRF70=y -DSB_CONFIG_DFU_MULTI_IMAGE_PACKAGE_WIFI_FW_PATCH=y
-
 .. _matter_lock_sample_ble_nus:
 
 Matter Bluetooth LE with Nordic UART Service
@@ -157,7 +138,7 @@ In the door lock sample, you can use the following commands with the Bluetooth L
 * ``Lock`` - To lock the door of the connected device.
 * ``Unlock`` - To unlock the door of the connected device.
 
-If the device is already connected to the Matter network, the notification about changing the lock state will be send to the Bluetooth controller.
+If the device is already connected to the Matter network, the notification about changing the lock state will be sent to the Bluetooth controller.
 
 Currently, the door lock's Bluetooth LE service extension with NUS is only available for the nRF52840 and the nRF5340 DKs in the :ref:`Matter over Thread <ug_matter_gs_testing>` network variant.
 However, you can use the Bluetooth LE service extension regardless of whether the device is connected to a Matter over Thread network or not.
@@ -293,7 +274,7 @@ Device Firmware Upgrade support
 
    .. note::
       You can enable over-the-air Device Firmware Upgrade only on hardware platforms that have external flash memory.
-      Currently only nRF52840 DK, nRF5340 DK, nRF7002 DK and nRF54L15 DK support Device Firmware Upgrade feature.
+      Currently only nRF52840 DK, nRF5340 DK, nRF7002 DK, nRF54L15 DK and nRF54LM20 DK support Device Firmware Upgrade feature.
 
    The sample supports over-the-air (OTA) device firmware upgrade (DFU) using one of the two following protocols:
 
@@ -359,7 +340,7 @@ Factory data support
 Enabling Matter Bluetooth LE with Nordic UART Service
 =====================================================
 
-You can enable the :ref:`matter_lock_sample_ble_nus` feature by setting the :kconfig:option:`CONFIG_CHIP_NUS` Kconfig option to ``y``.
+You can enable the :ref:`matter_lock_sample_ble_nus` feature by setting the :ref:`CONFIG_CHIP_NUS` Kconfig option to ``y``.
 
 .. note::
    This sample supports one Bluetooth LE connection at a time.
@@ -454,6 +435,16 @@ Building and running
 .. include:: /includes/ipc_radio_conf.txt
 
 See `Configuration`_ for information about building the sample with the DFU support.
+
+Building the Matter over Wi-Fi sample variant on nRF5340 DK with nRF7002 EK shield
+==================================================================================
+
+.. include:: /includes/matter_building_nrf5340dk_70ek
+
+Flashing the Matter over Wi-Fi sample variant
+=============================================
+
+.. include:: /includes/matter_sample_wifi_flash.txt
 
 Selecting a configuration
 =========================
@@ -565,7 +556,7 @@ Onboarding information
 ++++++++++++++++++++++
 
 When you start the commissioning procedure, the controller must get the onboarding information from the Matter accessory device.
-The onboarding information representation depends on your commissioner setup.
+The onboarding information representation depends on your commissioner set-up.
 
 For this sample, you can use one of the following :ref:`onboarding information formats <ug_matter_network_topologies_commissioning_onboarding_formats>` to provide the commissioner with the data payload that includes the device discriminator and the setup PIN code:
 
@@ -818,7 +809,7 @@ To test the :ref:`matter_lock_sample_ble_nus` feature, complete the following st
    Some of the steps depend on which :ref:`configuration <matter_lock_sample_custom_configs>` the sample was built with.
 
 #. Install `nRF Toolbox`_ on your Android (Android 11 or newer) or iOS (iOS 16.1 or newer) smartphone.
-#. Build the door lock application for Matter over Thread with the :kconfig:option:`CONFIG_CHIP_NUS` set to ``y``.
+#. Build the door lock application for Matter over Thread with the :ref:`CONFIG_CHIP_NUS` set to ``y``.
    For example, if you build from command line for the ``nrf52840dk/nrf52840``, use the following command:
 
    .. code-block:: console
@@ -831,7 +822,7 @@ To test the :ref:`matter_lock_sample_ble_nus` feature, complete the following st
 
       west flash --erase
 
-#. If you built the sample with the debug configuration, connect the board to an UART console to see the log entries from the device.
+#. If you built the sample with the debug configuration, connect the board to a UART console to see the log entries from the device.
 #. Open the nRF Toolbox application on your smartphone.
 #. Select :guilabel:`Universal Asynchronous Receiver/Transmitter UART` from the list in the nRF Toolbox application.
 #. Tap on :guilabel:`Connect`.

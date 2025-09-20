@@ -111,8 +111,6 @@ Developing with Front-End Modules
 
 * Added support for the following:
 
-  * :ref:`nRF2220 Front-End Module <ug_radio_fem_nrf2220>`.
-  * :ref:`nRF2220 EK shield <ug_radio_fem_nrf2220ek>`.
   * :ref:`nRF21540 Front-End Module in GPIO mode <ug_radio_fem_nrf21540_gpio>` for the nRF54L Series devices.
 
 Developing with PMICs
@@ -428,7 +426,6 @@ Bluetooth samples
   * Added:
 
     * Loading of radio trims and a fix of a hardware errata for the nRF54H20 SoC to improve the RF performance.
-    * Support for the :ref:`nRF2220 front-end module <ug_radio_fem_nrf2220ek>`.
 
 * :ref:`central_uart` sample:
 
@@ -640,7 +637,6 @@ Peripheral samples
   * Added:
 
     * Loading of radio trims and a fix of a hardware errata for the nRF54H20 SoC to improve the RF performance.
-    * Support for the :ref:`nRF2220 front-end module <ug_radio_fem_nrf2220ek>`.
 
 PMIC samples
 ------------
@@ -789,9 +785,9 @@ Bluetooth libraries and services
 
     * The :c:func:`bt_fast_pair_info_cb_register` API to allow registration of multiple callbacks.
     * The Fast Pair sysbuild Kconfig options.
-      The ``SB_CONFIG_BT_FAST_PAIR`` Kconfig option is replaced with the ``SB_CONFIG_BT_FAST_PAIR_MODEL_ID`` and ``SB_CONFIG_BT_FAST_PAIR_ANTI_SPOOFING_PRIVATE_KEY``.
+      The :kconfig:option:`SB_CONFIG_BT_FAST_PAIR` Kconfig option is replaced with the :kconfig:option:`SB_CONFIG_BT_FAST_PAIR_MODEL_ID` and :kconfig:option:`SB_CONFIG_BT_FAST_PAIR_ANTI_SPOOFING_PRIVATE_KEY`.
     * The method of supplying the Fast Pair Model ID and Anti-Spoofing Private Key to generate the Fast Pair provisioning data HEX file.
-      The ``FP_MODEL_ID`` and ``FP_ANTI_SPOOFING_KEY`` CMake variables are replaced by the corresponding ``SB_CONFIG_BT_FAST_PAIR_MODEL_ID`` and ``SB_CONFIG_BT_FAST_PAIR_ANTI_SPOOFING_PRIVATE_KEY`` Kconfig options.
+      The ``FP_MODEL_ID`` and ``FP_ANTI_SPOOFING_KEY`` CMake variables are replaced by the corresponding :kconfig:option:`SB_CONFIG_BT_FAST_PAIR_MODEL_ID` and :kconfig:option:`SB_CONFIG_BT_FAST_PAIR_ANTI_SPOOFING_PRIVATE_KEY` Kconfig options.
     * The automatically generated ``bt_fast_pair`` partition definition (in the :file:`subsys/partition_manager/pm.yml.bt_fast_pair` file) to work correctly when building with TF-M.
     * The behavior of the :c:member:`bt_fast_pair_fmdn_info_cb.provisioning_state_changed` callback.
       The callback no longer reports the initial provisioning state after the Fast Pair subsystem is enabled with the :c:func:`bt_fast_pair_enable` function call.

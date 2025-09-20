@@ -382,23 +382,15 @@ Configuration options
 
 Check and configure the following configuration options:
 
-.. _CONFIG_BRIDGED_DEVICE_IMPLEMENTATION:
+.. _CONFIG_BRIDGED_DEVICE_SIMULATED:
 
-CONFIG_BRIDGED_DEVICE_IMPLEMENTATION
-   ``bool`` - Select bridged device implementation.
-   See the :ref:`matter_bridge_app_bridged_support_configs` section for more information.
-   Accepts the following values:
+CONFIG_BRIDGED_DEVICE_SIMULATED
+   ``bool`` - Implement a simulated bridged device.
 
-   .. _CONFIG_BRIDGED_DEVICE_SIMULATED:
+.. _CONFIG_BRIDGED_DEVICE_BT:
 
-   CONFIG_BRIDGED_DEVICE_SIMULATED
-      ``bool`` - Implement a simulated bridged device.
-      You must also configure :ref:`CONFIG_BRIDGED_DEVICE_SIMULATED_ONOFF_IMPLEMENTATION <CONFIG_BRIDGED_DEVICE_SIMULATED_ONOFF_IMPLEMENTATION>`
-
-   .. _CONFIG_BRIDGED_DEVICE_BT:
-
-   CONFIG_BRIDGED_DEVICE_BT
-      ``bool`` - Implement a Bluetooth LE bridged device.
+CONFIG_BRIDGED_DEVICE_BT
+   ``bool`` - Implement a Bluetooth LE bridged device.
 
 .. _CONFIG_BRIDGE_HUMIDITY_SENSOR_BRIDGED_DEVICE:
 
@@ -410,21 +402,15 @@ CONFIG_BRIDGE_HUMIDITY_SENSOR_BRIDGED_DEVICE
 CONFIG_BRIDGE_ONOFF_LIGHT_BRIDGED_DEVICE
    ``bool`` - Enable support for OnOff Light bridged device.
 
-.. _CONFIG_BRIDGE_SWITCH_BRIDGED_DEVICE:
+.. _CONFIG_BRIDGE_GENERIC_SWITCH_BRIDGED_DEVICE:
 
-CONFIG_BRIDGE_SWITCH_BRIDGED_DEVICE
-   ``bool`` - Enable support for a switch bridged device.
-   Accepts the following values:
+CONFIG_BRIDGE_GENERIC_SWITCH_BRIDGED_DEVICE
+   ``bool`` - Enable support for Generic Switch bridged device.
 
-   .. _CONFIG_BRIDGE_GENERIC_SWITCH_BRIDGED_DEVICE:
+.. _CONFIG_BRIDGE_ONOFF_LIGHT_SWITCH_BRIDGED_DEVICE:
 
-   CONFIG_BRIDGE_GENERIC_SWITCH_BRIDGED_DEVICE
-      ``bool`` - Enable support for Generic Switch bridged device.
-
-   .. _CONFIG_BRIDGE_ONOFF_LIGHT_SWITCH_BRIDGED_DEVICE:
-
-   CONFIG_BRIDGE_ONOFF_LIGHT_SWITCH_BRIDGED_DEVICE
-      ``bool`` - Enable support for OnOff Light Switch bridged device.
+CONFIG_BRIDGE_ONOFF_LIGHT_SWITCH_BRIDGED_DEVICE
+   ``bool`` - Enable support for OnOff Light Switch bridged device.
 
 .. _CONFIG_BRIDGE_TEMPERATURE_SENSOR_BRIDGED_DEVICE:
 
@@ -443,23 +429,17 @@ CONFIG_BRIDGE_MIGRATE_VERSION_1
 
    If you selected the simulated device implementation using the :ref:`CONFIG_BRIDGED_DEVICE_SIMULATED <CONFIG_BRIDGED_DEVICE_SIMULATED>` Kconfig option, also check and configure the following option:
 
-.. _CONFIG_BRIDGED_DEVICE_SIMULATED_ONOFF_IMPLEMENTATION:
+.. _CONFIG_BRIDGED_DEVICE_SIMULATED_ONOFF_AUTOMATIC:
 
-CONFIG_BRIDGED_DEVICE_SIMULATED_ONOFF_IMPLEMENTATION
-   ``bool`` - Select the simulated OnOff device implementation.
-   Accepts the following values:
+CONFIG_BRIDGED_DEVICE_SIMULATED_ONOFF_AUTOMATIC
+   ``bool`` - Automatically simulated OnOff device.
+   The simulated device automatically changes its state periodically.
 
-   .. _CONFIG_BRIDGED_DEVICE_SIMULATED_ONOFF_AUTOMATIC:
+.. _CONFIG_BRIDGED_DEVICE_SIMULATED_ONOFF_SHELL:
 
-   CONFIG_BRIDGED_DEVICE_SIMULATED_ONOFF_AUTOMATIC
-      ``bool`` - Automatically simulated OnOff device.
-      The simulated device automatically changes its state periodically.
-
-   .. _CONFIG_BRIDGED_DEVICE_SIMULATED_ONOFF_SHELL:
-
-   CONFIG_BRIDGED_DEVICE_SIMULATED_ONOFF_SHELL
-      ``bool`` - Shell-controlled simulated OnOff device.
-      The state of the simulated device is changed using shell commands.
+CONFIG_BRIDGED_DEVICE_SIMULATED_ONOFF_SHELL
+   ``bool`` - Shell-controlled simulated OnOff device.
+   The state of the simulated device is changed using shell commands.
 
 If you selected the Bluetooth LE device implementation using the :ref:`CONFIG_BRIDGED_DEVICE_BT <CONFIG_BRIDGED_DEVICE_BT>` Kconfig option, also check and configure the following options:
 
@@ -489,6 +469,41 @@ CONFIG_BRIDGE_BT_RECOVERY_SCAN_TIMEOUT_MS
 
 CONFIG_BRIDGE_BT_SCAN_TIMEOUT_MS
    ``int`` - Set the Bluetooth LE scan timeout in milliseconds.
+
+.. _CONFIG_BRIDGE_FORCE_BT_CONNECTION_PARAMS:
+
+CONFIG_BRIDGE_FORCE_BT_CONNECTION_PARAMS
+   ``bool`` - Determines whether the Matter bridge forces connection parameters or accepts the Bluetooth LE peripheral device selection.
+
+.. _CONFIG_BRIDGE_BT_SCAN_WINDOW:
+
+CONFIG_BRIDGE_BT_SCAN_WINDOW
+   ``int`` - Duration of a central actively scanning for devices within scan interval, equal to ``CONFIG_BRIDGE_BT_SCAN_WINDOW`` * 0.625 ms.
+
+.. _CONFIG_BRIDGE_BT_SCAN_INTERVAL:
+
+CONFIG_BRIDGE_BT_SCAN_INTERVAL
+   ``int`` - Time between consecutive Bluetooth scan windows, equal to ``CONFIG_BRIDGE_BT_SCAN_INTERVAL`` * 0.625 ms.
+
+.. _CONFIG_BRIDGE_BT_CONNECTION_INTERVAL_MIN:
+
+CONFIG_BRIDGE_BT_CONNECTION_INTERVAL_MIN
+   ``int`` - The minimum duration of time requested by central after the peripheral device should wake up to communicate, equal to ``CONFIG_BRIDGE_BT_CONNECTION_INTERVAL_MIN`` * 1.25 ms.
+
+.. _CONFIG_BRIDGE_BT_CONNECTION_INTERVAL_MAX:
+
+CONFIG_BRIDGE_BT_CONNECTION_INTERVAL_MAX
+   ``int`` - The maximum duration of time requested by central after the peripheral device should wake up to communicate, equal to ``CONFIG_BRIDGE_BT_CONNECTION_INTERVAL_MAX`` * 1.25 ms.
+
+.. _CONFIG_BRIDGE_BT_CONNECTION_TIMEOUT:
+
+CONFIG_BRIDGE_BT_CONNECTION_TIMEOUT
+   ``int`` - The time since the last packet was successfully received until the devices consider the connection lost, equal to ``CONFIG_BRIDGE_BT_CONNECTION_TIMEOUT`` cs.
+
+.. _CONFIG_BRIDGE_BT_CONNECTION_LATENCY:
+
+CONFIG_BRIDGE_BT_CONNECTION_LATENCY
+   ``int`` - The number of connection events the peripheral can skip waking up for if it does not have any data to send.
 
 The following options affect how many bridged devices the application supports.
 See the :ref:`matter_bridge_app_bridged_support_configs` section for more information.
@@ -559,7 +574,7 @@ The current maximum number of Bluetooth LE connections that can be selected usin
             .. parsed-literal::
                :class: highlight
 
-               west build -b nrf5340dk/nrf5340/cpuapp -p -- -Dmatter_bridge_SHIELD=nrf7002ek -DSB_CONFIG_WIFI_PATCHES_EXT_FLASH_STORE=y -DSB_CONFIG_DFU_MULTI_IMAGE_PACKAGE_WIFI_FW_PATCH=y -DSB_CONFIG_WIFI_NRF70=y -Dmcuboot_CONFIG_UPDATEABLE_IMAGE_NUMBER=3 -DCONFIG_BRIDGED_DEVICE_BT=y -DEXTRA_CONF_FILE="overlay-bt_max_connections_app.conf" -Dipc_radio_EXTRA_CONF_FILE="overlay-bt_max_connections_net.conf" -DFILE_SUFFIX=nrf70ek
+               west build -b nrf5340dk/nrf5340/cpuapp -p -- -Dmatter_bridge_SHIELD=nrf7002ek -DSB_CONFIG_WIFI_NRF70=y -DCONFIG_BRIDGED_DEVICE_BT=y -DEXTRA_CONF_FILE="overlay-bt_max_connections_app.conf" -Dipc_radio_EXTRA_CONF_FILE="overlay-bt_max_connections_net.conf" -DFILE_SUFFIX=nrf70ek
 
          .. group-tab:: Matter bridge over Thread
 
@@ -593,12 +608,12 @@ You can disable configuring the parameters by setting the :kconfig:option:`CONFI
 
 Use the following Kconfig options to set the desired parameters:
 
-- :kconfig:option:`CONFIG_BRIDGE_BT_SCAN_WINDOW` - The duration a central actively scans for devices within the scan interval.
-- :kconfig:option:`CONFIG_BRIDGE_BT_SCAN_INTERVAL` - Time between consecutive Bluetooth LE scan windows.
-- :kconfig:option:`CONFIG_BRIDGE_BT_CONNECTION_INTERVAL_MIN` - The minimum time requested by the central (the bridge) after which the peripheral device should wake up to communicate.
-- :kconfig:option:`CONFIG_BRIDGE_BT_CONNECTION_INTERVAL_MAX` - The maximum time requested by the central (the bridge) after which the peripheral device should wake up to communicate.
-- :kconfig:option:`CONFIG_BRIDGE_BT_CONNECTION_TIMEOUT` - The time since the last packet was successfully received until the devices consider the connection lost.
-- :kconfig:option:`CONFIG_BRIDGE_BT_CONNECTION_LATENCY` - Allows the peripheral to skip waking up for a certain number of connection events if it does not have any data to send.
+- :ref:`CONFIG_BRIDGE_BT_SCAN_WINDOW` - The duration a central actively scans for devices within the scan interval.
+- :ref:`CONFIG_BRIDGE_BT_SCAN_INTERVAL` - Time between consecutive Bluetooth LE scan windows.
+- :ref:`CONFIG_BRIDGE_BT_CONNECTION_INTERVAL_MIN` - The minimum time requested by the central (the bridge) after which the peripheral device should wake up to communicate.
+- :ref:`CONFIG_BRIDGE_BT_CONNECTION_INTERVAL_MAX` - The maximum time requested by the central (the bridge) after which the peripheral device should wake up to communicate.
+- :ref:`CONFIG_BRIDGE_BT_CONNECTION_TIMEOUT` - The time since the last packet was successfully received until the devices consider the connection lost.
+- :ref:`CONFIG_BRIDGE_BT_CONNECTION_LATENCY` - Allows the peripheral to skip waking up for a certain number of connection events if it does not have any data to send.
 
 The parameters in this application have been selected based on the :ref:`multiprotocol_bt_thread` information in the :ref:`ug_multiprotocol_support` section.
 
@@ -695,15 +710,15 @@ Building and running
 
 .. include:: /includes/ipc_radio_conf.txt
 
-.. include:: ../../../samples/matter/lock/README.rst
-    :start-after: matter_door_lock_sample_nrf70_firmware_patch_start
-    :end-before: matter_door_lock_sample_nrf70_firmware_patch_end
+Building the application on nRF5340 DK with nRF7002 EK shield
+=============================================================
 
-For example:
+.. include:: /includes/matter_building_nrf5340dk_70ek
 
-   .. code-block:: console
+Flashing the Matter over Wi-Fi application variant
+==================================================
 
-      west build -b nrf5340dk/nrf5340/cpuapp -p -- -Dmatter_bridge_SHIELD=nrf7002ek -DSB_CONFIG_WIFI_PATCHES_EXT_FLASH_STORE=y -DSB_CONFIG_DFU_MULTI_IMAGE_PACKAGE_WIFI_FW_PATCH=y -DSB_CONFIG_WIFI_NRF70=y -Dmcuboot_CONFIG_UPDATEABLE_IMAGE_NUMBER=3 -DFILE_SUFFIX=nrf70ek
+.. include:: /includes/matter_sample_wifi_flash.txt
 
 Selecting a configuration
 =========================

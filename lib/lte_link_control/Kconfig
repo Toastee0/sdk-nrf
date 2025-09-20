@@ -20,7 +20,7 @@ config LTE_LC_CONN_EVAL_MODULE
 	bool "Connection Parameters Evaluation module"
 
 config LTE_LC_EDRX_MODULE
-	bool "Extended Discountinuous Reception (eDRX) module"
+	bool "Extended Discontinuous Reception (eDRX) module"
 
 config LTE_LC_NEIGHBOR_CELL_MEAS_MODULE
 	bool "Neighboring Cell Measurements module"
@@ -40,8 +40,11 @@ config LTE_LC_MODEM_SLEEP_MODULE
 config LTE_LC_TAU_PRE_WARNING_MODULE
 	bool "Tracking Area Update (TAU) module"
 
+config LTE_LC_ENV_EVAL_MODULE
+	bool "Environment Evaluation module"
+
 menuconfig LTE_LC_DNS_FALLBACK_MODULE
-	bool "Fallback DNS module"
+	bool "DNS Fallback module"
 	default y
 	help
 	  The device might or might not receive a DNS server address by the network during a PDN connection.
@@ -213,6 +216,17 @@ config LTE_EDRX_REQ_VALUE_NBIOT
 	  See 3GPP TS 24.008, subclause 10.5.5.32.
 	  The value 1001 corresponds to 163.84 seconds.
 
+config LTE_EDRX_REQ_VALUE_NTN_NBIOT
+	string "Requested eDRX value for NTN NB-IoT"
+	default "1001"
+	help
+	  Sets the eDRX value to be requested when NTN NB-IoT is used.
+	  The format is half a byte in a four-bit format.
+	  The eDRX value refers to bit 4 to 1 of octet 3 of the
+	  Extended DRX parameters information element.
+	  See 3GPP TS 24.008, subclause 10.5.5.32.
+	  The value 1001 corresponds to 163.84 seconds.
+
 config LTE_PTW_VALUE_LTE_M
 	string "Requested PTW value for LTE-M"
 	help
@@ -223,7 +237,7 @@ config LTE_PTW_VALUE_LTE_M
 	  element according to 10.5.5.32 of 3GPP TS 24.008.
 	  Requesting a specific PTW configuration should be done with
 	  caution. The requested value must be compliant with the eDRX
-	  value that is configured, and it's usually best to let the modem
+	  value that is configured, and it is usually best to let the modem
 	  use default PTW values.
 
 config LTE_PTW_VALUE_NBIOT
@@ -236,7 +250,20 @@ config LTE_PTW_VALUE_NBIOT
 	  element according to 10.5.5.32 of 3GPP TS 24.008.
 	  Requesting a specific PTW configuration should be done with
 	  caution. The requested value must be compliant with the eDRX
-	  value that is configured, and it's usually best to let the modem
+	  value that is configured, and it is usually best to let the modem
+	  use default PTW values.
+
+config LTE_PTW_VALUE_NTN_NBIOT
+	string "Requested PTW value for NTN NB-IoT"
+	help
+	  Sets the Paging Time Window value to be requested when enabling
+	  eDRX. The value applies to NTN NB-IoT.
+	  The format is a string with half a byte in 4-bit format,
+	  corresponding to bits 8 to 5 in octet 3 of eDRX information
+	  element according to 10.5.5.32 of 3GPP TS 24.008.
+	  Requesting a specific PTW configuration should be done with
+	  caution. The requested value must be compliant with the eDRX
+	  value that is configured, and it is usually best to let the modem
 	  use default PTW values.
 
 endif # LTE_LC_EDRX_MODULE
@@ -269,6 +296,9 @@ config LTE_NETWORK_MODE_LTE_M_NBIOT
 
 config LTE_NETWORK_MODE_LTE_M_NBIOT_GPS
 	bool "LTE-M, NB-IoT and GPS"
+
+config LTE_NETWORK_MODE_NTN_NBIOT
+	bool "NTN NB-IoT"
 
 endchoice
 
@@ -415,6 +445,12 @@ config LTE_LC_MODEM_SLEEP_NOTIFICATIONS_THRESHOLD_MS
 
 endif # LTE_LC_MODEM_SLEEP_MODULE
 
+config LTE_LC_ENV_EVAL_MAX_PLMN_COUNT
+	int "Maximum number of PLMNs to evaluate"
+	default 3
+	help
+	  Maximum number of PLMNs that can be evaluated with lte_lc_env_eval().
+
 config LTE_LC_TRACE
 	bool "LTE link control tracing"
 	help
@@ -431,6 +467,6 @@ config LTE_LC_WORKQUEUE_STACK_SIZE
 module = LTE_LINK_CONTROL
 module-dep = LOG
 module-str = LTE link control library
-source "${ZEPHYR_BASE}/subsys/logging/Kconfig.template.log_config"
+source "$(ZEPHYR_BASE)/subsys/logging/Kconfig.template.log_config"
 
 endif # LTE_LINK_CONTROL

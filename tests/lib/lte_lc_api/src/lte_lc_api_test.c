@@ -20,6 +20,11 @@
 #define TEST_EVENT_MAX_COUNT 20
 #define IGNORE NULL
 
+static const char cgmr_resp_9160[] = "mfw_nrf9160_1.3.7\r\nOK\r\n";
+static const char cgmr_resp_91x1[] = "mfw_nrf91x1_2.0.3\r\nOK\r\n";
+static const char cgmr_resp_9151_ntn[] = "mfw_nrf9151-ntn_1.0.0\r\nOK\r\n";
+static const char cgmr_resp_unknown[] = "foobar\r\nOK\r\n";
+
 static struct lte_lc_evt test_event_data[TEST_EVENT_MAX_COUNT];
 static struct lte_lc_ncell test_neighbor_cells[CONFIG_LTE_NEIGHBOR_CELLS_MAX];
 static struct lte_lc_cell test_gci_cells[CONFIG_LTE_NEIGHBOR_CELLS_MAX];
@@ -226,6 +231,68 @@ static void lte_lc_event_handler(const struct lte_lc_evt *const evt)
 		TEST_ASSERT_EQUAL(test_event_data[index].rai_cfg.cp_rai, evt->rai_cfg.cp_rai);
 		break;
 
+	case LTE_LC_EVT_ENV_EVAL_RESULT:
+		TEST_ASSERT_EQUAL(
+			test_event_data[index].env_eval_result.status,
+			evt->env_eval_result.status);
+		TEST_ASSERT_EQUAL(
+			test_event_data[index].env_eval_result.result_count,
+			evt->env_eval_result.result_count);
+		for (int i = 0; i < evt->env_eval_result.result_count; i++) {
+			TEST_ASSERT_EQUAL(
+				test_event_data[index].env_eval_result.results[i].rrc_state,
+				evt->env_eval_result.results[i].rrc_state);
+			TEST_ASSERT_EQUAL(
+				test_event_data[index].env_eval_result.results[i].energy_estimate,
+				evt->env_eval_result.results[i].energy_estimate);
+			TEST_ASSERT_EQUAL(
+				test_event_data[index].env_eval_result.results[i].tau_trig,
+				evt->env_eval_result.results[i].tau_trig);
+			TEST_ASSERT_EQUAL(
+				test_event_data[index].env_eval_result.results[i].ce_level,
+				evt->env_eval_result.results[i].ce_level);
+			TEST_ASSERT_EQUAL(
+				test_event_data[index].env_eval_result.results[i].earfcn,
+				evt->env_eval_result.results[i].earfcn);
+			TEST_ASSERT_EQUAL(
+				test_event_data[index].env_eval_result.results[i].dl_pathloss,
+				evt->env_eval_result.results[i].dl_pathloss);
+			TEST_ASSERT_EQUAL(
+				test_event_data[index].env_eval_result.results[i].rsrp,
+				evt->env_eval_result.results[i].rsrp);
+			TEST_ASSERT_EQUAL(
+				test_event_data[index].env_eval_result.results[i].rsrq,
+				evt->env_eval_result.results[i].rsrq);
+			TEST_ASSERT_EQUAL(
+				test_event_data[index].env_eval_result.results[i].tx_rep,
+				evt->env_eval_result.results[i].tx_rep);
+			TEST_ASSERT_EQUAL(
+				test_event_data[index].env_eval_result.results[i].rx_rep,
+				evt->env_eval_result.results[i].rx_rep);
+			TEST_ASSERT_EQUAL(
+				test_event_data[index].env_eval_result.results[i].phy_cid,
+				evt->env_eval_result.results[i].phy_cid);
+			TEST_ASSERT_EQUAL(
+				test_event_data[index].env_eval_result.results[i].band,
+				evt->env_eval_result.results[i].band);
+			TEST_ASSERT_EQUAL(
+				test_event_data[index].env_eval_result.results[i].snr,
+				evt->env_eval_result.results[i].snr);
+			TEST_ASSERT_EQUAL(
+				test_event_data[index].env_eval_result.results[i].tx_power,
+				evt->env_eval_result.results[i].tx_power);
+			TEST_ASSERT_EQUAL(
+				test_event_data[index].env_eval_result.results[i].mcc,
+				evt->env_eval_result.results[i].mcc);
+			TEST_ASSERT_EQUAL(
+				test_event_data[index].env_eval_result.results[i].mnc,
+				evt->env_eval_result.results[i].mnc);
+			TEST_ASSERT_EQUAL(
+				test_event_data[index].env_eval_result.results[i].cell_id,
+				evt->env_eval_result.results[i].cell_id);
+		}
+		break;
+
 	default:
 		TEST_FAIL_MESSAGE("Unhandled test event");
 		break;
@@ -278,8 +345,14 @@ static int sys_init_helper(void)
 extern void on_modem_init(int err, void *ctx);
 extern void lte_lc_on_modem_cfun(int mode, void *ctx);
 
-void test_lte_lc_on_modem_init_success(void)
+/* Helper function to initialize LTE LC with the given firmware version. */
+void lte_lc_on_modem_init_with_firmware(const char *cgmr_resp, uint16_t cgmr_resp_len)
 {
+	/* Read modem firmware type. */
+	__cmock_nrf_modem_at_cmd_ExpectAndReturn(NULL, 0, "AT+CGMR", 0);
+	__cmock_nrf_modem_at_cmd_IgnoreArg_buf();
+	__cmock_nrf_modem_at_cmd_IgnoreArg_len();
+	__cmock_nrf_modem_at_cmd_ReturnArrayThruPtr_buf((char *)cgmr_resp, cgmr_resp_len);
 	/* lte_lc_system_mode_set() */
 	__mock_nrf_modem_at_printf_ExpectAndReturn("AT%XSYSTEMMODE=1,1,1,3", EXIT_SUCCESS);
 	/* lte_lc_psm_req(false) */
@@ -292,7 +365,7 @@ void test_lte_lc_on_modem_init_success(void)
 	__mock_nrf_modem_at_printf_ExpectAndReturn("AT+CEDRXS=3", EXIT_SUCCESS);
 	/* CONFIG_LTE_RAI_REQ=n */
 	__mock_nrf_modem_at_printf_ExpectAndReturn("AT%RAI=0", EXIT_SUCCESS);
-	/* CONFIG_LTE_LC_DNS_FALLBACK */
+	/* CONFIG_LTE_LC_DNS_FALLBACK_MODULE */
 	__cmock_nrf_inet_pton_ExpectAndReturn(NRF_AF_INET, IGNORE, IGNORE, 0 /* error */);
 	__cmock_nrf_inet_pton_IgnoreArg_src();
 	__cmock_nrf_inet_pton_IgnoreArg_dst();
@@ -307,6 +380,11 @@ void test_lte_lc_on_modem_init_success(void)
 	on_modem_init(0, NULL);
 }
 
+void test_lte_lc_on_modem_init_success(void)
+{
+	lte_lc_on_modem_init_with_firmware(cgmr_resp_unknown, sizeof(cgmr_resp_unknown));
+}
+
 void test_lte_lc_on_modem_init_error_fail(void)
 {
 	on_modem_init(-NRF_EFAULT, NULL);
@@ -314,6 +392,13 @@ void test_lte_lc_on_modem_init_error_fail(void)
 
 void test_lte_lc_on_modem_init_system_mode_set_fail(void)
 {
+	/* Read modem firmware type. */
+	__cmock_nrf_modem_at_cmd_ExpectAndReturn(NULL, 0, "AT+CGMR", 0);
+	__cmock_nrf_modem_at_cmd_IgnoreArg_buf();
+	__cmock_nrf_modem_at_cmd_IgnoreArg_len();
+	__cmock_nrf_modem_at_cmd_ReturnArrayThruPtr_buf(
+		(char *)cgmr_resp_unknown,
+		sizeof(cgmr_resp_unknown));
 	/* lte_lc_system_mode_set() */
 	__mock_nrf_modem_at_printf_ExpectAndReturn("AT%XSYSTEMMODE=1,1,1,3", -NRF_EFAULT);
 
@@ -322,6 +407,13 @@ void test_lte_lc_on_modem_init_system_mode_set_fail(void)
 
 void test_lte_lc_on_modem_init_psm_req_fail(void)
 {
+	/* Read modem firmware type. */
+	__cmock_nrf_modem_at_cmd_ExpectAndReturn(NULL, 0, "AT+CGMR", 0);
+	__cmock_nrf_modem_at_cmd_IgnoreArg_buf();
+	__cmock_nrf_modem_at_cmd_IgnoreArg_len();
+	__cmock_nrf_modem_at_cmd_ReturnArrayThruPtr_buf(
+		(char *)cgmr_resp_unknown,
+		sizeof(cgmr_resp_unknown));
 	/* lte_lc_system_mode_set() */
 	__mock_nrf_modem_at_printf_ExpectAndReturn("AT%XSYSTEMMODE=1,1,1,3", EXIT_SUCCESS);
 	/* lte_lc_psm_req(false) */
@@ -332,6 +424,13 @@ void test_lte_lc_on_modem_init_psm_req_fail(void)
 
 void test_lte_lc_on_modem_init_edrx_req_fail(void)
 {
+	/* Read modem firmware type. */
+	__cmock_nrf_modem_at_cmd_ExpectAndReturn(NULL, 0, "AT+CGMR", 0);
+	__cmock_nrf_modem_at_cmd_IgnoreArg_buf();
+	__cmock_nrf_modem_at_cmd_IgnoreArg_len();
+	__cmock_nrf_modem_at_cmd_ReturnArrayThruPtr_buf(
+		(char *)cgmr_resp_unknown,
+		sizeof(cgmr_resp_unknown));
 	/* lte_lc_system_mode_set() */
 	__mock_nrf_modem_at_printf_ExpectAndReturn("AT%XSYSTEMMODE=1,1,1,3", EXIT_SUCCESS);
 	/* lte_lc_psm_req(false) */
@@ -348,6 +447,13 @@ void test_lte_lc_on_modem_init_edrx_req_fail(void)
 
 void test_lte_lc_on_modem_init_rai_fail(void)
 {
+	/* Read modem firmware type. */
+	__cmock_nrf_modem_at_cmd_ExpectAndReturn(NULL, 0, "AT+CGMR", 0);
+	__cmock_nrf_modem_at_cmd_IgnoreArg_buf();
+	__cmock_nrf_modem_at_cmd_IgnoreArg_len();
+	__cmock_nrf_modem_at_cmd_ReturnArrayThruPtr_buf(
+		(char *)cgmr_resp_unknown,
+		sizeof(cgmr_resp_unknown));
 	/* lte_lc_system_mode_set() */
 	__mock_nrf_modem_at_printf_ExpectAndReturn("AT%XSYSTEMMODE=1,1,1,3", EXIT_SUCCESS);
 	/* lte_lc_psm_req(false) */
@@ -360,13 +466,76 @@ void test_lte_lc_on_modem_init_rai_fail(void)
 	__mock_nrf_modem_at_printf_ExpectAndReturn("AT+CEDRXS=3", EXIT_SUCCESS);
 	/* CONFIG_LTE_RAI_REQ=n */
 	__mock_nrf_modem_at_printf_ExpectAndReturn("AT%RAI=0", -NRF_EFAULT);
-	/* CONFIG_LTE_LC_DNS_FALLBACK */
+	/* CONFIG_LTE_LC_DNS_FALLBACK_MODULE */
 	/* Let's check that IPv4 works */
 	__cmock_nrf_inet_pton_ExpectAndReturn(NRF_AF_INET, IGNORE, IGNORE, 1 /* success */);
 	__cmock_nrf_inet_pton_IgnoreArg_src();
 	__cmock_nrf_inet_pton_IgnoreArg_dst();
 	__cmock_nrf_setdnsaddr_ExpectAndReturn(NRF_AF_INET, IGNORE, sizeof(struct nrf_in_addr),
 					       EXIT_SUCCESS);
+	__cmock_nrf_setdnsaddr_IgnoreArg_in_addr();
+
+	on_modem_init(0, NULL);
+}
+
+void test_lte_lc_on_modem_init_dns_fail(void)
+{
+	/* Read modem firmware type. */
+	__cmock_nrf_modem_at_cmd_ExpectAndReturn(NULL, 0, "AT+CGMR", 0);
+	__cmock_nrf_modem_at_cmd_IgnoreArg_buf();
+	__cmock_nrf_modem_at_cmd_IgnoreArg_len();
+	__cmock_nrf_modem_at_cmd_ReturnArrayThruPtr_buf(
+		(char *)cgmr_resp_unknown,
+		sizeof(cgmr_resp_unknown));
+	/* lte_lc_system_mode_set() */
+	__mock_nrf_modem_at_printf_ExpectAndReturn("AT%XSYSTEMMODE=1,1,1,3", EXIT_SUCCESS);
+	/* lte_lc_psm_req(false) */
+	__mock_nrf_modem_at_printf_ExpectAndReturn("AT+CPSMS=", EXIT_SUCCESS);
+	/* lte_lc_proprietary_psm_req() */
+	__mock_nrf_modem_at_printf_ExpectAndReturn("AT%FEACONF=0,0,0", EXIT_SUCCESS);
+	/* CONFIG_LTE_PLMN_SELECTION_OPTIMIZATION=y */
+	__mock_nrf_modem_at_printf_ExpectAndReturn("AT%FEACONF=0,3,1", EXIT_SUCCESS);
+	/* lte_lc_edrx_req(false) */
+	__mock_nrf_modem_at_printf_ExpectAndReturn("AT+CEDRXS=3", EXIT_SUCCESS);
+	/* CONFIG_LTE_RAI_REQ=n */
+	__mock_nrf_modem_at_printf_ExpectAndReturn("AT%RAI=0", EXIT_SUCCESS);
+	/* CONFIG_LTE_LC_DNS_FALLBACK_MODULE */
+	/* DNS address is not valid IPv4 nor IPv6 address */
+	__cmock_nrf_inet_pton_ExpectAndReturn(NRF_AF_INET, IGNORE, IGNORE, 0 /* error */);
+	__cmock_nrf_inet_pton_IgnoreArg_src();
+	__cmock_nrf_inet_pton_IgnoreArg_dst();
+	__cmock_nrf_inet_pton_ExpectAndReturn(NRF_AF_INET6, IGNORE, IGNORE, 0 /* error */);
+	__cmock_nrf_inet_pton_IgnoreArg_src();
+	__cmock_nrf_inet_pton_IgnoreArg_dst();
+
+	on_modem_init(0, NULL);
+
+	/* Read modem firmware type. */
+	__cmock_nrf_modem_at_cmd_ExpectAndReturn(NULL, 0, "AT+CGMR", 0);
+	__cmock_nrf_modem_at_cmd_IgnoreArg_buf();
+	__cmock_nrf_modem_at_cmd_IgnoreArg_len();
+	__cmock_nrf_modem_at_cmd_ReturnArrayThruPtr_buf(
+		(char *)cgmr_resp_unknown,
+		sizeof(cgmr_resp_unknown));
+	/* lte_lc_system_mode_set() */
+	__mock_nrf_modem_at_printf_ExpectAndReturn("AT%XSYSTEMMODE=1,1,1,3", EXIT_SUCCESS);
+	/* lte_lc_psm_req(false) */
+	__mock_nrf_modem_at_printf_ExpectAndReturn("AT+CPSMS=", EXIT_SUCCESS);
+	/* lte_lc_proprietary_psm_req() */
+	__mock_nrf_modem_at_printf_ExpectAndReturn("AT%FEACONF=0,0,0", EXIT_SUCCESS);
+	/* CONFIG_LTE_PLMN_SELECTION_OPTIMIZATION=y */
+	__mock_nrf_modem_at_printf_ExpectAndReturn("AT%FEACONF=0,3,1", EXIT_SUCCESS);
+	/* lte_lc_edrx_req(false) */
+	__mock_nrf_modem_at_printf_ExpectAndReturn("AT+CEDRXS=3", EXIT_SUCCESS);
+	/* CONFIG_LTE_RAI_REQ=n */
+	__mock_nrf_modem_at_printf_ExpectAndReturn("AT%RAI=0", EXIT_SUCCESS);
+	/* CONFIG_LTE_LC_DNS_FALLBACK_MODULE */
+	__cmock_nrf_inet_pton_ExpectAndReturn(NRF_AF_INET, IGNORE, IGNORE, 1 /* success */);
+	__cmock_nrf_inet_pton_IgnoreArg_src();
+	__cmock_nrf_inet_pton_IgnoreArg_dst();
+	/* Setting DNS address fails */
+	__cmock_nrf_setdnsaddr_ExpectAndReturn(NRF_AF_INET, IGNORE, sizeof(struct nrf_in_addr),
+					       -1);
 	__cmock_nrf_setdnsaddr_IgnoreArg_in_addr();
 
 	on_modem_init(0, NULL);
@@ -1197,10 +1366,14 @@ void test_lte_lc_edrx_req_enable_cedrxs1_fail(void)
 {
 	int ret;
 
-	ret = lte_lc_edrx_param_set(LTE_LC_LTE_MODE_LTEM, "0001");
+	/* Executed with unknown firmware type. eDRX for NTN NB-IoT is configured, because
+	 * firmware type can not be determined.
+	 */
+
+	 ret = lte_lc_edrx_param_set(LTE_LC_LTE_MODE_NTN_NBIOT, "0001");
 	TEST_ASSERT_EQUAL(EXIT_SUCCESS, ret);
 
-	__mock_nrf_modem_at_printf_ExpectAndReturn("AT+CEDRXS=2,4,\"0001\"", -NRF_ENOMEM);
+	__mock_nrf_modem_at_printf_ExpectAndReturn("AT+CEDRXS=2,6,\"0001\"", -NRF_ENOMEM);
 	ret = lte_lc_edrx_req(true);
 	TEST_ASSERT_EQUAL(-EFAULT, ret);
 }
@@ -1208,6 +1381,10 @@ void test_lte_lc_edrx_req_enable_cedrxs1_fail(void)
 void test_lte_lc_edrx_req_enable_cedrxs2_fail(void)
 {
 	int ret;
+
+	/* Executed with nrf9160 firmware, NTN NB-IoT not supported. */
+
+	lte_lc_on_modem_init_with_firmware(cgmr_resp_9160, sizeof(cgmr_resp_9160));
 
 	ret = lte_lc_edrx_param_set(LTE_LC_LTE_MODE_LTEM, "0101");
 	TEST_ASSERT_EQUAL(EXIT_SUCCESS, ret);
@@ -1223,6 +1400,10 @@ void test_lte_lc_edrx_req_enable_cedrxs2_fail(void)
 void test_lte_lc_edrx_req_enable_success(void)
 {
 	int ret;
+
+	/* Executed with nrf91x1 firmware, NTN NB-IoT not supported. */
+
+	lte_lc_on_modem_init_with_firmware(cgmr_resp_91x1, sizeof(cgmr_resp_91x1));
 
 	lte_lc_callback_count_expected = 3;
 
@@ -1245,12 +1426,17 @@ void test_lte_lc_edrx_req_enable_success(void)
 	TEST_ASSERT_EQUAL(EXIT_SUCCESS, ret);
 	ret = lte_lc_edrx_param_set(LTE_LC_LTE_MODE_NBIOT, "0100");
 	TEST_ASSERT_EQUAL(EXIT_SUCCESS, ret);
+	ret = lte_lc_edrx_param_set(LTE_LC_LTE_MODE_NTN_NBIOT, "0100");
+	TEST_ASSERT_EQUAL(EXIT_SUCCESS, ret);
 
 	ret = lte_lc_ptw_set(LTE_LC_LTE_MODE_LTEM, "0011");
 	TEST_ASSERT_EQUAL(EXIT_SUCCESS, ret);
 	ret = lte_lc_ptw_set(LTE_LC_LTE_MODE_NBIOT, NULL);
 	TEST_ASSERT_EQUAL(EXIT_SUCCESS, ret);
 	/* Not setting PTW for NB-IoT to test that requested PTW is not 4 characters long */
+	ret = lte_lc_ptw_set(LTE_LC_LTE_MODE_NTN_NBIOT, NULL);
+	TEST_ASSERT_EQUAL(EXIT_SUCCESS, ret);
+	/* Not setting PTW for NTN NB-IoT to test that requested PTW is not 4 characters long */
 
 	strcpy(at_notif, "+CEDRXP: 4,\"0010\",\"0010\",\"0011\"\r\n");
 	at_monitor_dispatch(at_notif);
@@ -1274,15 +1460,84 @@ void test_lte_lc_edrx_req_enable_success(void)
 	k_sleep(K_MSEC(1));
 }
 
+void test_lte_lc_edrx_req_enable_success_ntn(void)
+{
+	int ret;
+
+	/* Executed with nrf9151-ntn firmware, NTN NB-IoT supported. */
+
+	lte_lc_on_modem_init_with_firmware(cgmr_resp_9151_ntn, sizeof(cgmr_resp_9151_ntn));
+
+	lte_lc_callback_count_expected = 3;
+
+	test_event_data[0].type = LTE_LC_EVT_EDRX_UPDATE;
+	test_event_data[0].edrx_cfg.mode = LTE_LC_LTE_MODE_LTEM;
+	test_event_data[0].edrx_cfg.edrx = 20.48;
+	test_event_data[0].edrx_cfg.ptw = 5.12;
+
+	test_event_data[1].type = LTE_LC_EVT_EDRX_UPDATE;
+	test_event_data[1].edrx_cfg.mode = LTE_LC_LTE_MODE_LTEM;
+	test_event_data[1].edrx_cfg.edrx = 20.48;
+	test_event_data[1].edrx_cfg.ptw = 19.2;
+
+	test_event_data[2].type = LTE_LC_EVT_EDRX_UPDATE;
+	test_event_data[2].edrx_cfg.mode = LTE_LC_LTE_MODE_LTEM;
+	test_event_data[2].edrx_cfg.edrx = 20.48;
+	test_event_data[2].edrx_cfg.ptw = 5.12;
+
+	ret = lte_lc_edrx_param_set(LTE_LC_LTE_MODE_LTEM, "0010");
+	TEST_ASSERT_EQUAL(EXIT_SUCCESS, ret);
+	ret = lte_lc_edrx_param_set(LTE_LC_LTE_MODE_NBIOT, "0100");
+	TEST_ASSERT_EQUAL(EXIT_SUCCESS, ret);
+	ret = lte_lc_edrx_param_set(LTE_LC_LTE_MODE_NTN_NBIOT, "0100");
+	TEST_ASSERT_EQUAL(EXIT_SUCCESS, ret);
+
+	ret = lte_lc_ptw_set(LTE_LC_LTE_MODE_LTEM, "0011");
+	TEST_ASSERT_EQUAL(EXIT_SUCCESS, ret);
+	ret = lte_lc_ptw_set(LTE_LC_LTE_MODE_NBIOT, NULL);
+	TEST_ASSERT_EQUAL(EXIT_SUCCESS, ret);
+	/* Not setting PTW for NB-IoT to test that requested PTW is not 4 characters long */
+	ret = lte_lc_ptw_set(LTE_LC_LTE_MODE_NTN_NBIOT, NULL);
+	TEST_ASSERT_EQUAL(EXIT_SUCCESS, ret);
+	/* Not setting PTW for NTN NB-IoT to test that requested PTW is not 4 characters long */
+
+	strcpy(at_notif, "+CEDRXP: 4,\"0010\",\"0010\",\"0011\"\r\n");
+	at_monitor_dispatch(at_notif);
+	k_sleep(K_MSEC(1));
+
+	/* AT+CEDRXS=2,4,"0010" is not sent by lte_lc because eDRX value for LTE-M is the same */
+	__mock_nrf_modem_at_printf_ExpectAndReturn("AT+CEDRXS=2,6,\"0100\"", EXIT_SUCCESS);
+	__mock_nrf_modem_at_printf_ExpectAndReturn("AT+CEDRXS=2,5,\"0100\"", EXIT_SUCCESS);
+	ret = lte_lc_edrx_req(true);
+	TEST_ASSERT_EQUAL(EXIT_SUCCESS, ret);
+
+	/* CEDRXP indicates a different PTW than requested so lte_lc requests it and
+	 * we get another notification
+	 */
+	strcpy(at_notif, "+CEDRXP: 4,\"0010\",\"0010\",\"1110\"\r\n");
+	__mock_nrf_modem_at_printf_ExpectAndReturn("AT%XPTW=4,\"0011\"", EXIT_SUCCESS);
+	at_monitor_dispatch(at_notif);
+	k_sleep(K_MSEC(1));
+
+	strcpy(at_notif, "+CEDRXP: 4,\"0010\",\"0010\",\"0011\"\r\n");
+	at_monitor_dispatch(at_notif);
+	k_sleep(K_MSEC(1));
+}
+
 void test_lte_lc_edrx_req_enable_no_edrx_value_set_success(void)
 {
 	int ret;
+
+	/* Executed with nrf9151-ntn firmware type, NTN NB-IoT supported. */
 
 	ret = lte_lc_edrx_param_set(LTE_LC_LTE_MODE_LTEM, NULL);
 	TEST_ASSERT_EQUAL(EXIT_SUCCESS, ret);
 	ret = lte_lc_edrx_param_set(LTE_LC_LTE_MODE_NBIOT, NULL);
 	TEST_ASSERT_EQUAL(EXIT_SUCCESS, ret);
+	ret = lte_lc_edrx_param_set(LTE_LC_LTE_MODE_NTN_NBIOT, NULL);
+	TEST_ASSERT_EQUAL(EXIT_SUCCESS, ret);
 
+	__mock_nrf_modem_at_printf_ExpectAndReturn("AT+CEDRXS=2,6", EXIT_SUCCESS);
 	__mock_nrf_modem_at_printf_ExpectAndReturn("AT+CEDRXS=2,4", EXIT_SUCCESS);
 	__mock_nrf_modem_at_printf_ExpectAndReturn("AT+CEDRXS=2,5", EXIT_SUCCESS);
 	ret = lte_lc_edrx_req(true);
@@ -1292,6 +1547,8 @@ void test_lte_lc_edrx_req_enable_no_edrx_value_set_success(void)
 void test_lte_lc_cedrxp(void)
 {
 	int ret;
+
+	/* Executed with nrf9151-ntn firmware type, NTN NB-IoT supported. */
 
 	strcpy(at_notif, "+CEDRXP: 5,\"1000\",\"0010\",\"1110\"\r\n");
 
@@ -1306,14 +1563,19 @@ void test_lte_lc_cedrxp(void)
 	TEST_ASSERT_EQUAL(EXIT_SUCCESS, ret);
 	ret = lte_lc_edrx_param_set(LTE_LC_LTE_MODE_NBIOT, "0100");
 	TEST_ASSERT_EQUAL(EXIT_SUCCESS, ret);
+	ret = lte_lc_edrx_param_set(LTE_LC_LTE_MODE_NTN_NBIOT, "0100");
+	TEST_ASSERT_EQUAL(EXIT_SUCCESS, ret);
 
 	ret = lte_lc_ptw_set(LTE_LC_LTE_MODE_LTEM, "1110");
 	TEST_ASSERT_EQUAL(EXIT_SUCCESS, ret);
 	ret = lte_lc_ptw_set(LTE_LC_LTE_MODE_NBIOT, "0001");
 	TEST_ASSERT_EQUAL(EXIT_SUCCESS, ret);
+	ret = lte_lc_ptw_set(LTE_LC_LTE_MODE_NTN_NBIOT, "0001");
+	TEST_ASSERT_EQUAL(EXIT_SUCCESS, ret);
 
 	/* Test AT%XPTW failure which is not really tested except in the code coverage data */
-	__mock_nrf_modem_at_printf_ExpectAndReturn("AT%XPTW=4,\"1110\"", -NRF_ENOMEM);
+	__mock_nrf_modem_at_printf_ExpectAndReturn("AT%XPTW=6,\"0001\"", -NRF_ENOMEM);
+	__mock_nrf_modem_at_printf_ExpectAndReturn("AT%XPTW=4,\"1110\"", EXIT_SUCCESS);
 	__mock_nrf_modem_at_printf_ExpectAndReturn("AT%XPTW=5,\"0001\"", EXIT_SUCCESS);
 	at_monitor_dispatch(at_notif);
 	k_sleep(K_MSEC(1));
@@ -1321,7 +1583,10 @@ void test_lte_lc_cedrxp(void)
 
 void test_lte_lc_edrx_on_modem_cfun(void)
 {
+	/* Executed with nrf9151-ntn firmware type, NTN NB-IoT supported. */
+
 	/* Power off callback from nrf_modem_lib causes AT commands */
+	__mock_nrf_modem_at_printf_ExpectAndReturn("AT+CEDRXS=2,6,\"0100\"", EXIT_SUCCESS);
 	__mock_nrf_modem_at_printf_ExpectAndReturn("AT+CEDRXS=2,4,\"0010\"", EXIT_SUCCESS);
 	__mock_nrf_modem_at_printf_ExpectAndReturn("AT+CEDRXS=2,5,\"0100\"", EXIT_SUCCESS);
 	lte_lc_edrx_on_modem_cfun(LTE_LC_FUNC_MODE_POWER_OFF, NULL);
@@ -1661,7 +1926,7 @@ void test_lte_lc_system_mode_get_all_modes(void)
 
 	for (size_t i = 0; i < ARRAY_SIZE(system_modes); ++i) {
 		__mock_nrf_modem_at_scanf_ExpectAndReturn(
-			"AT%XSYSTEMMODE?", "%%XSYSTEMMODE: %d,%d,%d,%d", 4);
+			"AT%XSYSTEMMODE?", "%%XSYSTEMMODE: %d,%d,%d,%d,%d", 4);
 		__mock_nrf_modem_at_scanf_ReturnVarg_int(system_modes[i][1]); /* ltem_mode */
 		__mock_nrf_modem_at_scanf_ReturnVarg_int(system_modes[i][2]); /* nbiot_mode */
 		__mock_nrf_modem_at_scanf_ReturnVarg_int(system_modes[i][3]); /* gps_mode */
@@ -1682,7 +1947,7 @@ void test_lte_lc_system_mode_get_all_preferences(void)
 
 	for (int i = 0; i < 5; ++i) {
 		__mock_nrf_modem_at_scanf_ExpectAndReturn(
-			"AT%XSYSTEMMODE?", "%%XSYSTEMMODE: %d,%d,%d,%d", 4);
+			"AT%XSYSTEMMODE?", "%%XSYSTEMMODE: %d,%d,%d,%d,%d", 4);
 		__mock_nrf_modem_at_scanf_ReturnVarg_int(1); /* ltem_mode */
 		__mock_nrf_modem_at_scanf_ReturnVarg_int(1); /* nbiot_mode */
 		__mock_nrf_modem_at_scanf_ReturnVarg_int(0); /* gps_mode */
@@ -1701,7 +1966,7 @@ void test_lte_lc_system_mode_get_no_pref(void)
 	enum lte_lc_system_mode mode;
 
 	__mock_nrf_modem_at_scanf_ExpectAndReturn(
-		"AT%XSYSTEMMODE?", "%%XSYSTEMMODE: %d,%d,%d,%d", 4);
+		"AT%XSYSTEMMODE?", "%%XSYSTEMMODE: %d,%d,%d,%d,%d", 4);
 	__mock_nrf_modem_at_scanf_ReturnVarg_int(1); /* ltem_mode */
 	__mock_nrf_modem_at_scanf_ReturnVarg_int(0); /* nbiot_mode */
 	__mock_nrf_modem_at_scanf_ReturnVarg_int(1); /* gps_mode */
@@ -1719,7 +1984,7 @@ void test_lte_lc_system_mode_get_at_scanf_fail(void)
 	enum lte_lc_system_mode_preference preference;
 
 	__mock_nrf_modem_at_scanf_ExpectAndReturn(
-		"AT%XSYSTEMMODE?", "%%XSYSTEMMODE: %d,%d,%d,%d", 3);
+		"AT%XSYSTEMMODE?", "%%XSYSTEMMODE: %d,%d,%d,%d,%d", 3);
 
 	ret = lte_lc_system_mode_get(&mode, &preference);
 	TEST_ASSERT_EQUAL(-EFAULT, ret);
@@ -1741,7 +2006,7 @@ void test_lte_lc_system_mode_get_invalid_mode_fail(void)
 	enum lte_lc_system_mode_preference preference;
 
 	__mock_nrf_modem_at_scanf_ExpectAndReturn(
-		"AT%XSYSTEMMODE?", "%%XSYSTEMMODE: %d,%d,%d,%d", 4);
+		"AT%XSYSTEMMODE?", "%%XSYSTEMMODE: %d,%d,%d,%d,%d", 4);
 	__mock_nrf_modem_at_scanf_ReturnVarg_int(0); /* ltem_mode */
 	__mock_nrf_modem_at_scanf_ReturnVarg_int(0); /* nbiot_mode */
 	__mock_nrf_modem_at_scanf_ReturnVarg_int(0); /* gps_mode */
@@ -1758,7 +2023,7 @@ void test_lte_lc_system_mode_get_invalid_pref_fail(void)
 	enum lte_lc_system_mode_preference preference;
 
 	__mock_nrf_modem_at_scanf_ExpectAndReturn(
-		"AT%XSYSTEMMODE?", "%%XSYSTEMMODE: %d,%d,%d,%d", 4);
+		"AT%XSYSTEMMODE?", "%%XSYSTEMMODE: %d,%d,%d,%d,%d", 4);
 	__mock_nrf_modem_at_scanf_ReturnVarg_int(1); /* ltem_mode */
 	__mock_nrf_modem_at_scanf_ReturnVarg_int(1); /* nbiot_mode */
 	__mock_nrf_modem_at_scanf_ReturnVarg_int(1); /* gps_mode */
@@ -4981,6 +5246,414 @@ void test_lte_lc_rai_update_fail(void)
 	/* Missing parameters */
 	strcpy(at_notif, "%RAI: \"0x0012BEEF\",\"123456\"\r\n");
 	at_monitor_dispatch(at_notif);
+}
+
+void test_lte_lc_env_eval_invalid_params(void)
+{
+	int ret;
+	struct lte_lc_env_eval_plmn plmn_list[CONFIG_LTE_LC_ENV_EVAL_MAX_PLMN_COUNT] = {
+		{
+			.mcc = 100,
+			.mnc = 99
+		}
+	};
+	struct lte_lc_env_eval_params params = {
+		.eval_type = LTE_LC_ENV_EVAL_TYPE_DYNAMIC,
+		.plmn_count = 0,
+		.plmn_list = NULL
+	};
+
+	/* NULL params */
+	ret = lte_lc_env_eval(NULL);
+	TEST_ASSERT_EQUAL(-EINVAL, ret);
+
+	/* PLMN list NULL */
+	ret = lte_lc_env_eval(&params);
+	TEST_ASSERT_EQUAL(-EINVAL, ret);
+
+	params.plmn_list = plmn_list;
+
+	/* Zero PLMN count */
+	ret = lte_lc_env_eval(&params);
+	TEST_ASSERT_EQUAL(-EINVAL, ret);
+
+	/* PLMN count exceeds CONFIG_LTE_LC_ENV_EVAL_MAX_PLMN_COUNT */
+	params.plmn_count = CONFIG_LTE_LC_ENV_EVAL_MAX_PLMN_COUNT + 1;
+	ret = lte_lc_env_eval(&params);
+	TEST_ASSERT_EQUAL(-EINVAL, ret);
+}
+
+void test_lte_lc_env_eval_invalid_funmode(void)
+{
+	int ret;
+	struct lte_lc_env_eval_plmn plmn_list[CONFIG_LTE_LC_ENV_EVAL_MAX_PLMN_COUNT] = {
+		{
+			.mcc = 123,
+			.mnc = 99
+		}
+	};
+	struct lte_lc_env_eval_params params = {
+		.eval_type = LTE_LC_ENV_EVAL_TYPE_DYNAMIC,
+		.plmn_count = 1,
+		.plmn_list = plmn_list
+	};
+
+	/* Reading functional mode fails */
+	__mock_nrf_modem_at_scanf_ExpectAndReturn("AT+CFUN?", "+CFUN: %hu", -NRF_ENOMEM);
+
+	ret = lte_lc_env_eval(&params);
+	TEST_ASSERT_EQUAL(-EFAULT, ret);
+
+	/* Functional mode is not RX only */
+	__mock_nrf_modem_at_scanf_ExpectAndReturn("AT+CFUN?", "+CFUN: %hu", 1);
+	__mock_nrf_modem_at_scanf_ReturnVarg_uint16(LTE_LC_FUNC_MODE_NORMAL);
+
+	ret = lte_lc_env_eval(&params);
+	TEST_ASSERT_EQUAL(-EOPNOTSUPP, ret);
+}
+
+void test_lte_lc_env_eval_invalid_mccmnc(void)
+{
+	int ret;
+	struct lte_lc_env_eval_plmn plmn_list[CONFIG_LTE_LC_ENV_EVAL_MAX_PLMN_COUNT] = {0};
+	struct lte_lc_env_eval_params params = {
+		.eval_type = LTE_LC_ENV_EVAL_TYPE_DYNAMIC,
+		.plmn_count = 1,
+		.plmn_list = plmn_list
+	};
+
+	plmn_list[0].mcc = -1;
+	plmn_list[0].mnc = 0;
+
+	__mock_nrf_modem_at_scanf_ExpectAndReturn("AT+CFUN?", "+CFUN: %hu", 1);
+	__mock_nrf_modem_at_scanf_ReturnVarg_uint16(LTE_LC_FUNC_MODE_RX_ONLY);
+
+	ret = lte_lc_env_eval(&params);
+	TEST_ASSERT_EQUAL(-EINVAL, ret);
+
+	plmn_list[0].mcc = 1000;
+	plmn_list[0].mnc = 0;
+
+	__mock_nrf_modem_at_scanf_ExpectAndReturn("AT+CFUN?", "+CFUN: %hu", 1);
+	__mock_nrf_modem_at_scanf_ReturnVarg_uint16(LTE_LC_FUNC_MODE_RX_ONLY);
+
+	ret = lte_lc_env_eval(&params);
+	TEST_ASSERT_EQUAL(-EINVAL, ret);
+
+	plmn_list[0].mcc = 0;
+	plmn_list[0].mnc = -1;
+
+	__mock_nrf_modem_at_scanf_ExpectAndReturn("AT+CFUN?", "+CFUN: %hu", 1);
+	__mock_nrf_modem_at_scanf_ReturnVarg_uint16(LTE_LC_FUNC_MODE_RX_ONLY);
+
+	ret = lte_lc_env_eval(&params);
+	TEST_ASSERT_EQUAL(-EINVAL, ret);
+
+	plmn_list[0].mcc = 0;
+	plmn_list[0].mnc = 1000;
+
+	__mock_nrf_modem_at_scanf_ExpectAndReturn("AT+CFUN?", "+CFUN: %hu", 1);
+	__mock_nrf_modem_at_scanf_ReturnVarg_uint16(LTE_LC_FUNC_MODE_RX_ONLY);
+
+	ret = lte_lc_env_eval(&params);
+	TEST_ASSERT_EQUAL(-EINVAL, ret);
+}
+
+void test_lte_lc_env_eval_fail(void)
+{
+	int ret;
+	struct lte_lc_env_eval_plmn plmn_list[CONFIG_LTE_LC_ENV_EVAL_MAX_PLMN_COUNT] = {
+		{
+			.mcc = 123,
+			.mnc = 99
+		},
+		{
+			.mcc = 123,
+			.mnc = 100
+		}
+	};
+	struct lte_lc_env_eval_params params = {
+		.eval_type = LTE_LC_ENV_EVAL_TYPE_DYNAMIC,
+		.plmn_count = 2,
+		.plmn_list = plmn_list
+	};
+
+	__mock_nrf_modem_at_scanf_ExpectAndReturn("AT+CFUN?", "+CFUN: %hu", 1);
+	__mock_nrf_modem_at_scanf_ReturnVarg_uint16(LTE_LC_FUNC_MODE_RX_ONLY);
+
+	__mock_nrf_modem_at_printf_ExpectAndReturn(
+		"AT%ENVEVAL=0,\"12399\",\"123100\"", -NRF_EFAULT);
+
+	ret = lte_lc_env_eval(&params);
+	TEST_ASSERT_EQUAL(-EFAULT, ret);
+}
+
+void test_lte_lc_env_eval_no_plmns_found(void)
+{
+	int ret;
+	int index = 0;
+	struct lte_lc_env_eval_plmn plmn_list[CONFIG_LTE_LC_ENV_EVAL_MAX_PLMN_COUNT] = {
+		{
+			.mcc = 123,
+			.mnc = 99
+		},
+		{
+			.mcc = 123,
+			.mnc = 100
+		},
+		{
+			.mcc = 123,
+			.mnc = 101
+		}
+	};
+	struct lte_lc_env_eval_params params = {
+		.eval_type = LTE_LC_ENV_EVAL_TYPE_FULL,
+		.plmn_count = 3,
+		.plmn_list = plmn_list
+	};
+
+	lte_lc_callback_count_expected = 1;
+
+	test_event_data[index].type = LTE_LC_EVT_ENV_EVAL_RESULT;
+	test_event_data[index].env_eval_result.status = 0;
+	test_event_data[index].env_eval_result.result_count = 0;
+
+	__mock_nrf_modem_at_scanf_ExpectAndReturn("AT+CFUN?", "+CFUN: %hu", 1);
+	__mock_nrf_modem_at_scanf_ReturnVarg_uint16(LTE_LC_FUNC_MODE_RX_ONLY);
+
+	__mock_nrf_modem_at_printf_ExpectAndReturn(
+		"AT%ENVEVAL=2,\"12399\",\"123100\",\"123101\"", EXIT_SUCCESS);
+
+	ret = lte_lc_env_eval(&params);
+	TEST_ASSERT_EQUAL(EXIT_SUCCESS, ret);
+
+	strcpy(at_notif, "%ENVEVAL: 0\r\n");
+	at_monitor_dispatch(at_notif);
+
+	k_sleep(K_MSEC(1));
+}
+
+void test_lte_lc_env_eval_success(void)
+{
+	int ret;
+	int index = 0;
+	struct lte_lc_env_eval_plmn plmn_list[CONFIG_LTE_LC_ENV_EVAL_MAX_PLMN_COUNT] = {
+		{
+			.mcc = 123,
+			.mnc = 99
+		},
+		{
+			.mcc = 123,
+			.mnc = 100
+		},
+		{
+			.mcc = 123,
+			.mnc = 101
+		}
+	};
+	struct lte_lc_env_eval_params params = {
+		.eval_type = LTE_LC_ENV_EVAL_TYPE_FULL,
+		.plmn_count = 3,
+		.plmn_list = plmn_list
+	};
+	struct lte_lc_conn_eval_params results[CONFIG_LTE_LC_ENV_EVAL_MAX_PLMN_COUNT] = {0};
+
+	lte_lc_callback_count_expected = 1;
+
+	test_event_data[index].type = LTE_LC_EVT_ENV_EVAL_RESULT;
+	test_event_data[index].env_eval_result.status = 0;
+	test_event_data[index].env_eval_result.result_count = 3;
+	test_event_data[index].env_eval_result.results = results;
+
+	results[0].rrc_state = LTE_LC_RRC_MODE_IDLE;
+	results[0].energy_estimate = LTE_LC_ENERGY_CONSUMPTION_NORMAL;
+	results[0].tau_trig = LTE_LC_CELL_NOT_IN_TAI_LIST;
+	results[0].ce_level = LTE_LC_CE_LEVEL_0;
+	results[0].earfcn = 1300;
+	results[0].dl_pathloss = 99;
+	results[0].rsrp = 59;
+	results[0].rsrq = 32;
+	results[0].tx_rep = 1;
+	results[0].rx_rep = 8;
+	results[0].phy_cid = 123;
+	results[0].band = 3;
+	results[0].snr = 42;
+	results[0].tx_power = -5;
+	results[0].mcc = 123;
+	results[0].mnc = 99;
+	results[0].cell_id = 0xABBAABBA;
+
+	results[1].rrc_state = LTE_LC_RRC_MODE_IDLE;
+	results[1].energy_estimate = LTE_LC_ENERGY_CONSUMPTION_REDUCED;
+	results[1].tau_trig = LTE_LC_CELL_NOT_IN_TAI_LIST;
+	results[1].ce_level = LTE_LC_CE_LEVEL_0;
+	results[1].earfcn = 1300;
+	results[1].dl_pathloss = 99;
+	results[1].rsrp = 59;
+	results[1].rsrq = 32;
+	results[1].tx_rep = 1;
+	results[1].rx_rep = 8;
+	results[1].phy_cid = 123;
+	results[1].band = 3;
+	results[1].snr = 42;
+	results[1].tx_power = -5;
+	results[1].mcc = 123;
+	results[1].mnc = 100;
+	results[1].cell_id = 0xEBBEEBBE;
+
+	results[2].rrc_state = LTE_LC_RRC_MODE_IDLE;
+	results[2].energy_estimate = LTE_LC_ENERGY_CONSUMPTION_EFFICIENT;
+	results[2].tau_trig = LTE_LC_CELL_NOT_IN_TAI_LIST;
+	results[2].ce_level = LTE_LC_CE_LEVEL_0;
+	results[2].earfcn = 1300;
+	results[2].dl_pathloss = 99;
+	results[2].rsrp = 59;
+	results[2].rsrq = 32;
+	results[2].tx_rep = 1;
+	results[2].rx_rep = 8;
+	results[2].phy_cid = 123;
+	results[2].band = 3;
+	results[2].snr = 42;
+	results[2].tx_power = -5;
+	results[2].mcc = 123;
+	results[2].mnc = 101;
+	results[2].cell_id = 0xDABADABA;
+
+	__mock_nrf_modem_at_scanf_ExpectAndReturn("AT+CFUN?", "+CFUN: %hu", 1);
+	__mock_nrf_modem_at_scanf_ReturnVarg_uint16(LTE_LC_FUNC_MODE_RX_ONLY);
+
+	__mock_nrf_modem_at_printf_ExpectAndReturn(
+		"AT%ENVEVAL=2,\"12399\",\"123100\",\"123101\"", EXIT_SUCCESS);
+
+	ret = lte_lc_env_eval(&params);
+	TEST_ASSERT_EQUAL(EXIT_SUCCESS, ret);
+
+	strcpy(at_notif,
+		"%ENVEVAL: 0,0,7,59,32,42,\"ABBAABBA\",\"12399\",123,1300,3,1,0,-5,1,8,99\r\n");
+	at_monitor_dispatch(at_notif);
+
+	strcpy(at_notif,
+		"%ENVEVAL: 0,0,8,59,32,42,\"EBBEEBBE\",\"123100\",123,1300,3,1,0,-5,1,8,99\r\n");
+	at_monitor_dispatch(at_notif);
+
+	strcpy(at_notif,
+		"%ENVEVAL: 0,0,9,59,32,42,\"DABADABA\",\"123101\",123,1300,3,1,0,-5,1,8,99\r\n");
+	at_monitor_dispatch(at_notif);
+
+	/* Send one extra notification to make sure it is ignored. */
+	strcpy(at_notif,
+		"%ENVEVAL: 0,0,5,59,32,42,\"BADABADA\",\"123102\",123,1300,3,1,0,-5,1,8,99\r\n");
+	at_monitor_dispatch(at_notif);
+
+	strcpy(at_notif, "%ENVEVAL: 0\r\n");
+	at_monitor_dispatch(at_notif);
+
+	k_sleep(K_MSEC(1));
+}
+
+void test_lte_lc_env_eval_malformed(void)
+{
+	int ret;
+	struct lte_lc_env_eval_plmn plmn_list[CONFIG_LTE_LC_ENV_EVAL_MAX_PLMN_COUNT] = {
+		{
+			.mcc = 123,
+			.mnc = 99
+		},
+		{
+			.mcc = 123,
+			.mnc = 100
+		},
+		{
+			.mcc = 123,
+			.mnc = 101
+		}
+	};
+	struct lte_lc_env_eval_params params = {
+		.eval_type = LTE_LC_ENV_EVAL_TYPE_FULL,
+		.plmn_count = 3,
+		.plmn_list = plmn_list
+	};
+
+	/* No valid values in the notification */
+
+	__mock_nrf_modem_at_scanf_ExpectAndReturn("AT+CFUN?", "+CFUN: %hu", 1);
+	__mock_nrf_modem_at_scanf_ReturnVarg_uint16(LTE_LC_FUNC_MODE_RX_ONLY);
+
+	__mock_nrf_modem_at_printf_ExpectAndReturn(
+		"AT%ENVEVAL=2,\"12399\",\"123100\",\"123101\"", EXIT_SUCCESS);
+
+	ret = lte_lc_env_eval(&params);
+	TEST_ASSERT_EQUAL(EXIT_SUCCESS, ret);
+
+	strcpy(at_notif, "%ENVEVAL: foobar\r\n");
+	at_monitor_dispatch(at_notif);
+
+	/* Too short PLMN string */
+
+	__mock_nrf_modem_at_scanf_ExpectAndReturn("AT+CFUN?", "+CFUN: %hu", 1);
+	__mock_nrf_modem_at_scanf_ReturnVarg_uint16(LTE_LC_FUNC_MODE_RX_ONLY);
+
+	__mock_nrf_modem_at_printf_ExpectAndReturn(
+		"AT%ENVEVAL=2,\"12399\",\"123100\",\"123101\"", EXIT_SUCCESS);
+
+	ret = lte_lc_env_eval(&params);
+	TEST_ASSERT_EQUAL(EXIT_SUCCESS, ret);
+
+	strcpy(at_notif,
+		"%ENVEVAL: 0,0,7,59,32,42,\"ABBAABBA\",\"1234\",123,1300,3,1,0,-5,1,8,99\r\n");
+	at_monitor_dispatch(at_notif);
+
+	/* Invalid MNC value in PLMN string */
+
+	__mock_nrf_modem_at_scanf_ExpectAndReturn("AT+CFUN?", "+CFUN: %hu", 1);
+	__mock_nrf_modem_at_scanf_ReturnVarg_uint16(LTE_LC_FUNC_MODE_RX_ONLY);
+
+	__mock_nrf_modem_at_printf_ExpectAndReturn(
+		"AT%ENVEVAL=2,\"12399\",\"123100\",\"123101\"", EXIT_SUCCESS);
+
+	ret = lte_lc_env_eval(&params);
+	TEST_ASSERT_EQUAL(EXIT_SUCCESS, ret);
+
+	strcpy(at_notif,
+		"%ENVEVAL: 0,0,7,59,32,42,\"ABBAABBA\",\"123aa\",123,1300,3,1,0,-5,1,8,99\r\n");
+	at_monitor_dispatch(at_notif);
+
+	/* Invalid MCC value in PLMN string */
+
+	__mock_nrf_modem_at_scanf_ExpectAndReturn("AT+CFUN?", "+CFUN: %hu", 1);
+	__mock_nrf_modem_at_scanf_ReturnVarg_uint16(LTE_LC_FUNC_MODE_RX_ONLY);
+
+	__mock_nrf_modem_at_printf_ExpectAndReturn(
+		"AT%ENVEVAL=2,\"12399\",\"123100\",\"123101\"", EXIT_SUCCESS);
+
+	ret = lte_lc_env_eval(&params);
+	TEST_ASSERT_EQUAL(EXIT_SUCCESS, ret);
+
+	strcpy(at_notif,
+		"%ENVEVAL: 0,0,7,59,32,42,\"ABBAABBA\",\"aaa12\",123,1300,3,1,0,-5,1,8,99\r\n");
+	at_monitor_dispatch(at_notif);
+
+	k_sleep(K_MSEC(1));
+}
+
+void test_lte_lc_env_eval_cancel_fail(void)
+{
+	int ret;
+
+	__mock_nrf_modem_at_printf_ExpectAndReturn("AT%ENVEVALSTOP", -NRF_EFAULT);
+
+	ret = lte_lc_env_eval_cancel();
+	TEST_ASSERT_EQUAL(-EFAULT, ret);
+}
+
+void test_lte_lc_env_eval_cancel(void)
+{
+	int ret;
+
+	__mock_nrf_modem_at_printf_ExpectAndReturn("AT%ENVEVALSTOP", EXIT_SUCCESS);
+
+	ret = lte_lc_env_eval_cancel();
+	TEST_ASSERT_EQUAL(EXIT_SUCCESS, ret);
 }
 
 /* It is required to be added to each test. That is because unity's

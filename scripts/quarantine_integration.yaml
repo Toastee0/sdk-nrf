@@ -17,6 +17,8 @@
     - sample.matter.thermostat.ext_temp
     - sample.matter.light_bulb.memory_profiling
     - sample.matter.smoke_co_alarm.release.power_consumption
+    - sample.matter.temperature_sensor.release
+    - sample.matter.contact_sensor.release
   platforms:
     - nrf52840dk/nrf52840
   comment: "Configurations excluded to limit resources usage in integration builds"
@@ -35,6 +37,8 @@
     - sample.matter.window_cover.release
     - sample.matter.window_cover.release.power_consumption
     - sample.matter.smoke_co_alarm.release.power_consumption
+    - sample.matter.temperature_sensor.release
+    - sample.matter.contact_sensor.release
     - sample.matter.thermostat.ext_temp
     - sample.matter.light_bulb.memory_profiling
     - applications.matter_bridge.br_ble.memory_profiling
@@ -91,6 +95,8 @@
     - sample.matter.window_cover.debug
     - sample.matter.window_cover.release.power_consumption
     - sample.matter.smoke_co_alarm.release.power_consumption
+    - sample.matter.temperature_sensor.release
+    - sample.matter.contact_sensor.release
   platforms:
     - nrf54l15dk/nrf54l15/cpuapp
   comment: "Configurations excluded to limit resources usage in integration builds"
@@ -340,7 +346,8 @@
 - scenarios:
     - sample.npm1300_fuel_gauge_compile
     - sample.npm1304_fuel_gauge_compile
-    - sample.npm1300_one_button
+    - sample.npm1300_one_button_compile
+    - sample.npm1304_one_button_compile
   platforms:
     - nrf52840dk/nrf52840
     - nrf52dk/nrf52832
@@ -578,40 +585,43 @@
 - scenarios:
     - sample.benchmark.coremark.heap_memory
   platforms:
-    - nrf52dk/nrf52832
     - nrf52833dk/nrf52833
+    - nrf52dk/nrf52832
     - nrf5340dk/nrf5340/cpuapp
+    - nrf54h20dk@0.9.0/nrf54h20/cpuapp
     - nrf54l15dk/nrf54l05/cpuapp
     - nrf54l15dk/nrf54l10/cpuapp
     - nrf54l15dk/nrf54l15/cpuapp
-    - nrf54lm20pdk/nrf54lm20a/cpuapp
-    - nrf54h20dk@0.9.0/nrf54h20/cpuapp
+    - nrf54lm20dk/nrf54lm20a/cpuapp
+    - nrf54lv10dk/nrf54lv10a/cpuapp
   comment: "Configurations excluded to limit resources usage in integration builds"
 
 - scenarios:
     - sample.benchmark.coremark.static_memory
   platforms:
-    - nrf52dk/nrf52832
     - nrf52833dk/nrf52833
+    - nrf52dk/nrf52832
     - nrf5340dk/nrf5340/cpuapp
+    - nrf54h20dk@0.9.0/nrf54h20/cpuapp
     - nrf54l15dk/nrf54l05/cpuapp
     - nrf54l15dk/nrf54l10/cpuapp
     - nrf54l15dk/nrf54l15/cpuapp
-    - nrf54lm20pdk/nrf54lm20a/cpuapp
-    - nrf54h20dk@0.9.0/nrf54h20/cpuapp
+    - nrf54lm20dk/nrf54lm20a/cpuapp
+    - nrf54lv10dk/nrf54lv10a/cpuapp
   comment: "Configurations excluded to limit resources usage in integration builds"
 
 - scenarios:
     - sample.benchmark.coremark.multiple_threads
   platforms:
-    - nrf52dk/nrf52832
     - nrf52833dk/nrf52833
+    - nrf52dk/nrf52832
     - nrf5340dk/nrf5340/cpuapp
+    - nrf54h20dk@0.9.0/nrf54h20/cpuapp
     - nrf54l15dk/nrf54l05/cpuapp
     - nrf54l15dk/nrf54l10/cpuapp
     - nrf54l15dk/nrf54l15/cpuapp
-    - nrf54lm20pdk/nrf54lm20a/cpuapp
-    - nrf54h20dk@0.9.0/nrf54h20/cpuapp
+    - nrf54lm20dk/nrf54lm20a/cpuapp
+    - nrf54lv10dk/nrf54lv10a/cpuapp
   comment: "Configurations excluded to limit resources usage in integration builds"
 
 - scenarios:

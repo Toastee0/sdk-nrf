@@ -19,6 +19,8 @@ The following Matter samples and applications use the low power configuration by
 * :ref:`Matter smoke CO alarm <matter_smoke_co_alarm_sample>`
 * :ref:`Matter window covering sample <matter_window_covering_sample>`
 * :ref:`Matter weather station application <matter_weather_station_app>`
+* :ref:`Matter temperature sensor sample <matter_temperature_sensor_sample>`
+* :ref:`Matter contact sensor sample <matter_contact_sensor_sample>`
 
 The following additional materials and tools might help you to optimize, estimate, and measure the power consumption of your device are:
 
@@ -242,9 +244,9 @@ Disable LEDs module
 When performing the power measurements on various development kits, the LEDs can either be included in the measurement circuit or not:
 
 * For the nRF52840 DK and nRF5340 DK, the LEDs are excluded from the measurement circuit, so they can be enabled for the low power configuration and it is not going to impact the measurement results.
-* For the nRF54L15 DK, the MOSFET transistors controlling the LEDs are included in the measurement circuit.
+* For the nRF54L15 DK and nRF54LM20 DK, the MOSFET transistors controlling the LEDs are included in the measurement circuit.
   This results in measurement results being increased by an additional, small leakage current that appears if an LED is turned on.
-  To measure the current consumption of the nRF54L15 SoC without including development kit components, such as LEDs, it is recommended to disable them.
+  To measure the current consumption of the nRF54L15 or nRF54LM20 SoC without including development kit components, such as LEDs, it is recommended to disable them.
 
 To disable LEDs in the Matter samples and applications, set the :ref:`CONFIG_NCS_SAMPLE_MATTER_LEDS <CONFIG_NCS_SAMPLE_MATTER_LEDS>` Kconfig option to ``n``.
 

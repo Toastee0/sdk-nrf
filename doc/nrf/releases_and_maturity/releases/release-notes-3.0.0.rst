@@ -273,8 +273,6 @@ Developing with Front-End Modules
 
 * Added support for the following:
 
-  * :ref:`nRF2220 Front-End Module <ug_radio_fem_nrf2220>`.
-  * :ref:`nRF2220 EK shield <ug_radio_fem_nrf2220ek>`.
   * :ref:`nRF21540 Front-End Module in GPIO mode <ug_radio_fem_nrf21540_gpio>` for the nRF54L Series devices.
 
 * Fixed an issue for the nRF21540 Front-End Module (for GPIO and GPIO+SPI modes) when spurious emission occurred due to late activation of the ``TX_EN`` pin.
@@ -649,7 +647,6 @@ Bluetooth samples
   * Added:
 
     * Loading of radio trims and a fix of a hardware errata for the nRF54H20 SoC to improve the RF performance.
-    * Support for the :ref:`nRF2220 front-end module <ug_radio_fem_nrf2220ek>`.
     * Workaround for the hardware errata HMPAN-216 for the nRF54H20 SoC.
 
 * :ref:`central_uart` sample:
@@ -756,11 +753,11 @@ Bluetooth Fast Pair samples
       The change modifies the memory partition layout for the ``nrf54l15dk/nrf54l15/cpuapp`` board target and changes the MCUboot image signing algorithm.
       Because of that, the application images built for the ``nrf54l15dk/nrf54l15/cpuapp`` board target from this |NCS| release are not compatible with the MCUboot bootloader built from previous releases.
       It is highly recommended to use hardware cryptography for the nRF54L Series SoC for improved security.
-    * The configurations for board targets with the MCUboot bootloader support to use a non-default signature key file (the ``SB_CONFIG_BOOT_SIGNATURE_KEY_FILE`` Kconfig option).
+    * The configurations for board targets with the MCUboot bootloader support to use a non-default signature key file (the :kconfig:option:`SB_CONFIG_BOOT_SIGNATURE_KEY_FILE` Kconfig option).
       The application uses a unique signature key file for each board target, which is defined at the same directory level as the target sysbuild configuration file.
       This modification changes the key set that is used by the MCUboot DFU solution.
       Because of that, the application images from this |NCS| release are not compatible with the MCUboot bootloader built from previous releases.
-    * The MCUboot DFU signature type to the Elliptic curve digital signatures with curve P-256 (ECDSA P256 - the ``SB_CONFIG_BOOT_SIGNATURE_TYPE_ECDSA_P256`` Kconfig option) for the ``nrf52840dk/nrf52840`` board target.
+    * The MCUboot DFU signature type to the Elliptic curve digital signatures with curve P-256 (ECDSA P256 - the :kconfig:option:`SB_CONFIG_BOOT_SIGNATURE_TYPE_ECDSA_P256` Kconfig option) for the ``nrf52840dk/nrf52840`` board target.
       This is done to use Cryptocell 310 for image signature verification.
       This change breaks the backwards compatibility, as performing DFU from an old signature type to a new one is impossible.
 
@@ -892,7 +889,6 @@ Peripheral samples
   * Added:
 
     * Loading of radio trims and a fix of a hardware errata for the nRF54H20 SoC to improve the RF performance.
-    * Support for the :ref:`nRF2220 front-end module <ug_radio_fem_nrf2220ek>`.
     * Workaround for the hardware errata HMPAN-216 for the nRF54H20 SoC.
 
 PMIC samples
@@ -937,7 +933,7 @@ Trusted Firmware-M (TF-M) samples
   * Added support for the following attestation token fields:
 
     * Profile definition
-    * PSA certificate reference (optional), configured using the ``SB_CONFIG_TFM_OTP_PSA_CERTIFICATE_REFERENCE`` sysbuild Kconfig option
+    * PSA certificate reference (optional), configured using the :kconfig:option:`SB_CONFIG_TFM_OTP_PSA_CERTIFICATE_REFERENCE` sysbuild Kconfig option
     * Verification service URL (optional), configured using the :kconfig:option:`CONFIG_TFM_ATTEST_VERIFICATION_SERVICE_URL` Kconfig option
 
 * :ref:`tfm_secure_peripheral_partition` sample:
@@ -1079,9 +1075,9 @@ Bluetooth libraries and services
 
     * The :c:func:`bt_fast_pair_info_cb_register` API to allow registration of multiple callbacks.
     * The Fast Pair sysbuild Kconfig options.
-      The ``SB_CONFIG_BT_FAST_PAIR`` Kconfig option is replaced with the ``SB_CONFIG_BT_FAST_PAIR_MODEL_ID`` and ``SB_CONFIG_BT_FAST_PAIR_ANTI_SPOOFING_PRIVATE_KEY``.
+      The :kconfig:option:`SB_CONFIG_BT_FAST_PAIR` Kconfig option is replaced with the :kconfig:option:`SB_CONFIG_BT_FAST_PAIR_MODEL_ID` and :kconfig:option:`SB_CONFIG_BT_FAST_PAIR_ANTI_SPOOFING_PRIVATE_KEY`.
     * The method of supplying the Fast Pair Model ID and Anti-Spoofing Private Key to generate the Fast Pair provisioning data HEX file.
-      The ``FP_MODEL_ID`` and ``FP_ANTI_SPOOFING_KEY`` CMake variables are replaced by the corresponding ``SB_CONFIG_BT_FAST_PAIR_MODEL_ID`` and ``SB_CONFIG_BT_FAST_PAIR_ANTI_SPOOFING_PRIVATE_KEY`` Kconfig options.
+      The ``FP_MODEL_ID`` and ``FP_ANTI_SPOOFING_KEY`` CMake variables are replaced by the corresponding :kconfig:option:`SB_CONFIG_BT_FAST_PAIR_MODEL_ID` and :kconfig:option:`SB_CONFIG_BT_FAST_PAIR_ANTI_SPOOFING_PRIVATE_KEY` Kconfig options.
     * The automatically generated ``bt_fast_pair`` partition definition (in the :file:`subsys/partition_manager/pm.yml.bt_fast_pair` file) to work correctly when building with TF-M.
     * The behavior of the :c:member:`bt_fast_pair_fmdn_info_cb.provisioning_state_changed` callback.
       The callback no longer reports the initial provisioning state after the Fast Pair subsystem is enabled with the :c:func:`bt_fast_pair_enable` function call.

@@ -75,6 +75,10 @@ After programming the sample to your development kit, perform the following step
    +===================+==================+
    | nRF52840 DK       | ``0xa8000``      |
    +-------------------+------------------+
+   | nRF54H20 DK       | ``0xe092000``    |
+   +-------------------+------------------+
+   | nRF54L15 DK       | ``0xf2000``      |
+   +-------------------+------------------+
 
 #. Upload the second version of the image to the device using ``nrfutil device``:
 
@@ -93,6 +97,7 @@ After programming the sample to your development kit, perform the following step
      ``<image_size>`` is the size, in bytes, of the file :file:`build_v2/dfu_target/zephyr/zephyr.signed.bin`.
 
    * Step-by-step update:
+
      #. Get the image type::
 
            dfu_target image_type

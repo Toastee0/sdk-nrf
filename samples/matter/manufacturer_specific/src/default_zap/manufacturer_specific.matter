@@ -1555,7 +1555,7 @@ endpoint 0 {
     callback attribute capabilityMinima;
     callback attribute specificationVersion;
     callback attribute maxPathsPerInvoke;
-    ram      attribute randomNumber default = 0;
+    persist  attribute randomNumber default = 0;
     callback attribute generatedCommandList;
     callback attribute acceptedCommandList;
     callback attribute attributeList;
@@ -1689,6 +1689,9 @@ endpoint 0 {
     handle command UpdateFabricLabel;
     handle command RemoveFabric;
     handle command AddTrustedRootCertificate;
+    handle command SetVIDVerificationStatement;
+    handle command SignVIDVerificationRequest;
+    handle command SignVIDVerificationResponse;
   }
 
   server cluster GroupKeyManagement {
@@ -1716,13 +1719,14 @@ endpoint 1 {
   binding cluster NordicDevKit;
 
   server cluster NordicDevKit {
+    emits event UserButtonChanged;
     callback attribute generatedCommandList;
     callback attribute acceptedCommandList;
     callback attribute attributeList;
     ram      attribute featureMap default = 0;
     ram      attribute clusterRevision default = 1;
     persist  attribute devKitName default = "Nordic Development Kit";
-    ram      attribute userLED default = false;
+    persist  attribute userLED default = false;
     ram      attribute userButton default = false;
 
     handle command SetLED;

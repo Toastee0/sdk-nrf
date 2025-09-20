@@ -49,6 +49,7 @@ bluetooth:
     - modules/crypto/mbedtls/
     - modules/crypto/oberon-psa-crypto/
     - modules/crypto/tinycrypt/
+    - modules/lib/memfault-firmware-sdk/
     - nrf/applications/ipc_radio/
     - nrf/cmake/
     - nrf/drivers/mpsl/
@@ -149,13 +150,14 @@ ci_samples_wifi:
   files:
     - modules/lib/hostap/
     - modules/lib/nrf_wifi/
+    - nrf/boards/shields/nrf7002eb2/
     - nrf/samples/wifi/
-    - nrf/subsys/net/lib/nrf70_fw_ext/
     - nrf/subsys/net/lib/hostap_crypto/
+    - nrf/subsys/net/lib/nrf70_fw_ext/
     - nrfxlib/nrf_wifi/
+    - zephyr/drivers/wifi/
     - zephyr/modules/hostap/
     - zephyr/modules/nrf_wifi/
-    - zephyr/drivers/wifi/
 
 ci_applications_matter: &ci_matter
   files:
@@ -206,6 +208,7 @@ ci_applications_matter: &ci_matter
     - zephyr/soc/nordic/
     - zephyr/subsys/bluetooth/
     - zephyr/subsys/dfu/
+    - zephyr/subsys/fs/
     - zephyr/subsys/mgmt/mcumgr/
     - zephyr/subsys/net/
     - zephyr/subsys/settings/
@@ -1458,6 +1461,11 @@ ci_tests_drivers_uart:
     - zephyr/dts/vendor/nordic/
     - zephyr/soc/nordic/
 
+ci_tests_drivers_grtc:
+  files:
+    - nrf/tests/drivers/grtc/
+    - zephyr/drivers/timer/
+
 ci_tests_drivers_sensor_qdec:
   files:
     - nrf/samples/zephyr/sensor/qdec/
@@ -1662,6 +1670,16 @@ ci_samples_zephyr_subsys_settings:
   files:
     - nrf/samples/zephyr/subsys/settings/
     - zephyr/samples/subsys/settings/
+
+ci_samples_zephyr_sysbuild_hello_world:
+  files:
+    - nrf/samples/zephyr/sysbuild/hello_world/
+    - zephyr/samples/sysbuild/hello_world/
+
+ci_samples_zephyr_subsys_ipc_ipc_service_icmsg:
+  files:
+    - nrf/samples/zephyr/subsys/ipc/ipc_service/icmsg/
+    - zephyr/samples/subsys/ipc/ipc_service/icmsg/
 
 ci_samples_zephyr_drivers_audio_dmic:
   files:
@@ -1915,3 +1933,11 @@ ci_samples_nrf54h20:
     - nrf/samples/nrf54h20/
     - zephyr/modules/hal_nordic/
     - zephyr/soc/nordic/nrf54h/
+
+ci_tests_subsys_rtt:
+  files:
+    - nrf/tests/subsys/rtt/
+
+ci_tests_subsys_swo:
+  files:
+    - nrf/tests/subsys/swo/
