@@ -1,0 +1,45 @@
+sample:
+  name: HPF WS2812 application
+  description: HPF WS2812 application
+common:
+  integration_platforms:
+    - xiao_nrf54l15_nrf54l15_cpuflpr
+tests:
+  applications.hpf.ws2812.mbox:
+    build_only: true
+    sysbuild: true
+    platform_allow: xiao_nrf54l15_nrf54l15_cpuflpr
+    tags:
+      - ci_build
+      - sysbuild
+      - gpio
+      - ws2812
+      - ci_applications_hpf
+    required_snippets:
+      - hpf-ws2812-mbox
+
+  applications.hpf.ws2812.icmsg:
+    build_only: true
+    sysbuild: true
+    platform_allow: xiao_nrf54l15_nrf54l15_cpuflpr
+    tags:
+      - ci_build
+      - sysbuild
+      - gpio
+      - ws2812
+      - ci_applications_hpf
+    required_snippets:
+      - hpf-ws2812-icmsg
+
+  applications.hpf.ws2812.icbmsg:
+    sysbuild: true
+    build_only: true
+    platform_allow: xiao_nrf54l15_nrf54l15_cpuflpr
+    tags:
+      - ci_build
+      - sysbuild
+      - gpio
+      - ws2812
+      - ci_applications_hpf
+    required_snippets:
+      - hpf-ws2812-icbmsg
