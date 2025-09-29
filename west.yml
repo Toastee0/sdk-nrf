@@ -22,7 +22,7 @@ manifest:
       url-base: https://github.com/nrfconnect
     # Third-party repository sources:
     - name: zephyrproject
-      url-base: https://github.com/zephyrproject-rtos
+      url-base: https://github.com/Toastee0
     - name: throwtheswitch
       url-base: https://github.com/ThrowTheSwitch
     - name: dragoon
@@ -35,9 +35,6 @@ manifest:
       url-base: https://github.com/boschsensortec
     - name: eembc
       url-base: https://github.com/eembc
-    # Custom remote for WS2812 HPF development
-    - name: toastee0
-      url-base: https://github.com/Toastee0
 
   # If not otherwise specified, the projects below should be obtained
   # from the ncs remote.
@@ -67,9 +64,8 @@ manifest:
     # https://developer.nordicsemi.com/nRF_Connect_SDK/doc/latest/zephyr/introduction/index.html
     # https://developer.nordicsemi.com/nRF_Connect_SDK/doc/latest/zephyr/guides/modules.html
     - name: zephyr
-      repo-path: zephyr
-      remote: toastee0
-      revision: 34889c20a60c6b62c6e77cc325d29e598ab5d4f3
+      repo-path: sdk-zephyr
+      revision: 34889c20a601e1e5e555db0d06594b6fca7c38ad
       import:
         # In addition to the zephyr repository itself, NCS also
         # imports the contents of zephyr/west.yml at the above
