@@ -167,7 +167,7 @@ int main(void)
 
 	/* Set up timer for precise WS2812 timing */
 	nrf_vpr_csr_vtim_simple_counter_set(0, 0);
-	nrf_vpr_csr_vtim_count_mode_set(0, NRF_VPR_CSR_VTIM_COUNT_UP);
+	nrf_vpr_csr_vtim_count_mode_set(0, NRF_VPR_CSR_VTIM_COUNT_RELOAD);
 
 	/* Connect WS2812 interrupt handlers */
 	HRT_CONNECT(HRT_VEVIF_IDX_WS2812_REFRESH, hrt_handler_ws2812_refresh);
