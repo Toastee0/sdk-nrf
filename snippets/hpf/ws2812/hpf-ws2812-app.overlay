@@ -3,6 +3,21 @@
  * SPDX-License-Identifier: LicenseRef-Nordic-5-Clause
  */
 
+/ {
+	/* MBOX consumer configuration for HPF WS2812 communication */
+	mbox_consumer: mbox_consumer {
+		compatible = "vnd,mbox-consumer";
+		mboxes = <&cpuflpr_vevif_rx 20>, <&cpuflpr_vevif_tx 20>;
+		mbox-names = "rx", "tx";
+	};
+
+	/* Shared SRAM for MBOX communication */
+	sram_rx: memory@20028000 {
+		compatible = "mmio-sram";
+		reg = <0x20028000 0x1000>;
+	};
+};
+
 &cpuflpr_vpr {
 	status = "okay";
 
@@ -10,4 +25,13 @@
 		compatible = "nordic,hpf-ws2812";
 		status = "okay";
 	};
+};
+
+/* Enable MBOX communication with ARM core */
+&cpuflpr_vevif_rx {
+	status = "okay";
+};
+
+&cpuflpr_vevif_tx {
+	status = "okay";
 };
