@@ -21,7 +21,11 @@ typedef enum {
 	HPF_WS2812_CLEAR = 2, /* Set GPIO low for reset period. */
 } hpf_ws2812_opcode_t;
 
-/** @brief WS2812 HPF data packet. */
+/** @brief WS2812 HPF data packet.
+ * 
+ * This structure is sent directly via MBOX messages without
+ * shared memory or complex locking mechanisms.
+ */
 typedef struct __packed {
 	uint8_t opcode; /* WS2812 opcode. */
 	uint32_t pin; /* Pin number when opcode is HPF_WS2812_PIN_CONFIGURE. */
@@ -30,11 +34,6 @@ typedef struct __packed {
 			 * Not used in other cases.
 			 */
 } hpf_ws2812_data_packet_t;
-
-typedef struct {
-	struct hpf_shared_data_lock lock;
-	hpf_ws2812_data_packet_t data;
-} hpf_ws2812_mbox_data_t;
 
 #ifdef __cplusplus
 }

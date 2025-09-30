@@ -11,11 +11,7 @@
 		mbox-names = "rx", "tx";
 	};
 
-	/* Shared SRAM for MBOX communication */
-	sram_rx: memory@20028000 {
-		compatible = "mmio-sram";
-		reg = <0x20028000 0x1000>;
-	};
+	/* Direct MBOX data transfer - no shared SRAM needed */
 };
 
 &cpuflpr_vpr {
