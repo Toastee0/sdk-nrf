@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: LicenseRef-Nordic-5-Clause
 #
 
-name: hpf-gpio-mbox
+name: hpf-ws2812-mbox
 
 boards:
   /.*/nrf54l15/cpuapp/:

@@ -6,12 +6,8 @@
 &cpuflpr_vpr {
 	status = "okay";
 
-	hpf_gpio: gpio {
-		compatible = "nordic,hpf-gpio";
-		gpio-controller;
-		#gpio-cells = <0x2>;
-		ngpios = <0x10>;
-		status = "disabled";
-		port = <0x2>;
+	hpf_ws2812: ws2812 {
+		compatible = "nordic,hpf-ws2812";
+		status = "okay";
 	};
 };
