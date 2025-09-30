@@ -67,7 +67,7 @@ manifest:
     - name: zephyr
       remote: Toastee0
       repo-path: sdk-zephyr
-      revision: 
+      revision: main
       import:
         # In addition to the zephyr repository itself, NCS also
         # imports the contents of zephyr/west.yml at the above
