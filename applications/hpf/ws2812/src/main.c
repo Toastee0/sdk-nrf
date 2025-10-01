@@ -37,8 +37,12 @@ static nrf_gpio_pin_pull_t get_pull(gpio_flags_t flags)
 
 static int gpio_hpf_pin_configure(uint8_t port, uint16_t pin, uint32_t flags)
 {
-	/* Support ports 0, 1, and 2 for flexibility (XIAO uses port 1 for P1.04) */
-	if (port > 2) {
+	/* FLPR VIO (VPR I/O) can only access GPIO Port 2 (P2.0-P2.10)
+	 * VIO pin numbering: 4,0,1,3,2,5..10 maps to GPIO P2.0-P2.10
+	 * IMPORTANT: XIAO P1.04 is NOT accessible from FLPR!
+	 * User must select a Port 2 pin (e.g., P2.00-P2.10) for WS2812 output
+	 */
+	if (port != 2) {
 		return -EINVAL;
 	}
 
