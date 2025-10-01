@@ -18,9 +18,11 @@
 /**
  * @brief Callback function called by backend when new packet arrives.
  *
- * @param packet New packet.
+ * @param control Control packet with opcode, pin, port, and LED count.
+ * @param pixels Array of pixel data (GRB format).
  */
-typedef void (*backend_callback_t)(hpf_ws2812_data_packet_t *packet);
+typedef void (*backend_callback_t)(hpf_ws2812_control_packet_t *control, 
+                                   hpf_ws2812_pixel_t *pixels);
 
 /**
  * @brief Initialize backend.

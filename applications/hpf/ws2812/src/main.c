@@ -24,8 +24,6 @@
 #define VEVIF_IRQN(vevif) VEVIF_IRQN_1(vevif)
 #define VEVIF_IRQN_1(vevif) VPRCLIC_##vevif##_IRQn
 
-extern volatile uint16_t ws2812_pin_mask_arg;
-
 static nrf_gpio_pin_pull_t get_pull(gpio_flags_t flags)
 {
 	if (flags & GPIO_PULL_UP) {
@@ -39,7 +37,8 @@ static nrf_gpio_pin_pull_t get_pull(gpio_flags_t flags)
 
 static int gpio_hpf_pin_configure(uint8_t port, uint16_t pin, uint32_t flags)
 {
-	if (port != 2) {
+	/* Support ports 0, 1, and 2 for flexibility (XIAO uses port 1 for P1.04) */
+	if (port > 2) {
 		return -EINVAL;
 	}
 
@@ -106,32 +105,49 @@ static int gpio_hpf_pin_configure(uint8_t port, uint16_t pin, uint32_t flags)
 	return 0;
 }
 
-void process_packet(hpf_ws2812_data_packet_t *packet)
+/* Global state for WS2812 control */
+static struct {
+	uint32_t pin;
+	uint8_t port;
+	uint32_t num_leds;
+	bool configured;
+	hpf_ws2812_pixel_t pixel_buffer[HPF_WS2812_MAX_LEDS];
+} ws2812_state = {
+	.configured = false
+};
+
+void process_packet(hpf_ws2812_control_packet_t *control, hpf_ws2812_pixel_t *pixels)
 {
-	switch (packet->opcode) {
-	case HPF_WS2812_PIN_CONFIGURE: {
-		/* Use existing GPIO configuration function for WS2812 pin setup */
-		/* Convert WS2812 parameters to GPIO flags for output configuration */
-		uint32_t gpio_flags = GPIO_OUTPUT | GPIO_OUTPUT_INIT_LOW;
-		gpio_hpf_pin_configure(packet->port, packet->pin, gpio_flags);
-		
-		/* Also call our WS2812-specific configuration */
-		hrt_ws2812_configure(packet->pin, packet->port, packet->numleds);
-		break;
+	if (control->opcode != HPF_WS2812_UPDATE) {
+		return;
 	}
-	case HPF_WS2812_REFRESH: {
+
+	/* Configure GPIO if this is the first update */
+	if (!ws2812_state.configured || 
+	    control->pin != ws2812_state.pin || 
+	    control->port != ws2812_state.port) {
+		
+		uint32_t gpio_flags = GPIO_OUTPUT | GPIO_OUTPUT_INIT_LOW;
+		gpio_hpf_pin_configure(control->port, control->pin, gpio_flags);
+		
+		ws2812_state.pin = control->pin;
+		ws2812_state.port = control->port;
+		ws2812_state.configured = true;
+	}
+
+	/* Copy pixel data to local buffer - disable interrupts to prevent race condition */
+	if (control->num_leds > 0 && control->num_leds <= HPF_WS2812_MAX_LEDS) {
+		uint32_t key = irq_lock();
+		
+		ws2812_state.num_leds = control->num_leds;
+		for (uint32_t i = 0; i < control->num_leds; i++) {
+			ws2812_state.pixel_buffer[i] = pixels[i];
+		}
+		
+		irq_unlock(key);
+		
 		/* Trigger WS2812 pixel refresh via interrupt */
 		nrf_vpr_clic_int_pending_set(NRF_VPRCLIC, VEVIF_IRQN(HRT_VEVIF_IDX_WS2812_REFRESH));
-		break;
-	}
-	case HPF_WS2812_CLEAR: {
-		/* Trigger WS2812 reset/latch pulse via interrupt */
-		nrf_vpr_clic_int_pending_set(NRF_VPRCLIC, VEVIF_IRQN(HRT_VEVIF_IDX_WS2812_CLEAR));
-		break;
-	}
-	default: {
-		break;
-	}
 	}
 }
 
@@ -140,13 +156,10 @@ void process_packet(hpf_ws2812_data_packet_t *packet)
 	nrf_vpr_clic_int_enable_set(NRF_VPRCLIC, VEVIF_IRQN(vevif), true)
 
 
-/* Global pixel data buffer - filled by ARM core via shared memory */
-static uint8_t pixel_data_buffer[1024]; /* Adjust size as needed */
-
 __attribute__ ((interrupt)) void hrt_handler_ws2812_refresh(void)
 {
-	/* Send pixel data to WS2812 strip */
-	hrt_ws2812_refresh(pixel_data_buffer);
+	/* Send pixel data to WS2812 strip using HRT function */
+	hrt_ws2812_refresh((const uint8_t *)ws2812_state.pixel_buffer);
 }
 
 __attribute__ ((interrupt)) void hrt_handler_ws2812_clear(void)

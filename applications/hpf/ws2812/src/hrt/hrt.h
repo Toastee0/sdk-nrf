@@ -19,12 +19,14 @@ void hrt_ws2812_configure(uint32_t pin, uint8_t port, uint32_t num_leds);
 
 /**
  * @brief Send pixel data to WS2812 strip
- * @param pixel_data Pointer to RGB pixel data (3 bytes per pixel: G, R, B)
+ * @param pixel_data Pointer to GRB pixel data (3 bytes per pixel: G, R, B)
+ *                   WS2812 protocol uses GRB color order, not RGB
  */
 void hrt_ws2812_refresh(const uint8_t *pixel_data);
 
 /**
  * @brief Send reset/latch signal to WS2812 strip
+ *        Outputs low signal for >50μs to latch data
  */
 void hrt_ws2812_clear(void);
 

@@ -17,21 +17,21 @@
 			};
 
 			sram_rx: memory@2003c000 {
-				reg = <0x2003c000 0x0800>;
+				reg = <0x2003c000 0x1000>;
 			};
 
-			sram_tx: memory@2003c800 {
-				reg = <0x2003c800 0x0800>;
+			sram_tx: memory@2003d000 {
+				reg = <0x2003d000 0x1000>;
 			};
 		};
 
 
-		cpuflpr_sram_code_data: memory@2003d000 {
+		cpuflpr_sram_code_data: memory@2003e000 {
 			compatible = "mmio-sram";
-			reg = <0x2003d000 DT_SIZE_K(12)>;
+			reg = <0x2003e000 DT_SIZE_K(12)>;
 			#address-cells = <1>;
 			#size-cells = <1>;
-			ranges = <0x0 0x2003d000 0x3000>;
+			ranges = <0x0 0x2003e000 0x3000>;
 		};
 	};
 

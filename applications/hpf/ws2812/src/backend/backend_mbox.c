@@ -24,6 +24,8 @@ static void mbox_callback(const struct device *instance, uint32_t channel, void 
 			  struct mbox_msg *msg_data)
 {
 	/* Unused parameters */
+	(void)instance;
+	(void)channel;
 	(void)msg_data;
 
 	/* Check for invalid arguments */
@@ -35,16 +37,33 @@ static void mbox_callback(const struct device *instance, uint32_t channel, void 
 
 	/* Try and get lock for the shared data structure */
 	if (!atomic_cas(&rx_data->lock.locked, DATA_LOCK_STATE_WITH_DATA, DATA_LOCK_STATE_BUSY)) {
-		/* Return in case buffer is without data */
+		/* Lock not in WITH_DATA state, nothing to process */
+		return;
+	}
+
+	/* Get control packet and pixel data */
+	hpf_ws2812_control_packet_t *control = &rx_data->control;
+	hpf_ws2812_pixel_t *pixels = rx_data->pixels;
+
+	/* Validate control packet before processing */
+	if (control->num_leds > HPF_WS2812_MAX_LEDS) {
+		/* Invalid LED count - release lock and return */
+		rx_data->lock.data_size = 0;
 		atomic_set(&rx_data->lock.locked, DATA_LOCK_STATE_READY);
 		return;
 	}
 
-	hpf_ws2812_data_packet_t *packet = (hpf_ws2812_data_packet_t *)&rx_data->data;
+	if (control->opcode != HPF_WS2812_UPDATE) {
+		/* Unknown opcode - release lock and return */
+		rx_data->lock.data_size = 0;
+		atomic_set(&rx_data->lock.locked, DATA_LOCK_STATE_READY);
+		return;
+	}
 
-	cbck(packet);
+	/* Call application callback with validated control and pixel data */
+	cbck(control, pixels);
 
-	/* Clear shared_data.buffer_size (there is no more data available)
+	/* Clear shared_data.data_size (there is no more data available)
 	 * This is necessary so that the other core knows that the data has been read
 	 */
 	rx_data->lock.data_size = 0;

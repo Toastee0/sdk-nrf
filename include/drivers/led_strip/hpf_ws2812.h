@@ -16,24 +16,32 @@ extern "C" {
 
 /** @brief WS2812 HPF opcodes. */
 typedef enum {
-	HPF_WS2812_PIN_CONFIGURE = 0, /* Configure GPIO pin and number of LEDs for this instance. */
-	HPF_WS2812_REFRESH = 1, /* Update LED strip with pixel data from the message data. */
-	HPF_WS2812_CLEAR = 2, /* Set GPIO low for reset period. */
+	HPF_WS2812_UPDATE = 0, /* Update LED strip with pixel data from shared memory. */
 } hpf_ws2812_opcode_t;
 
-/** @brief WS2812 HPF data packet. */
-typedef struct __packed {
-	uint8_t opcode; /* WS2812 opcode. */
-	uint32_t pin; /* Pin number when opcode is HPF_WS2812_PIN_CONFIGURE. */
-	uint8_t port; /* Port number. */
-	uint32_t numleds; /* Number of LEDs when opcode is HPF_WS2812_PIN_CONFIGURE.
-			 * Not used in other cases.
-			 */
-} hpf_ws2812_data_packet_t;
+/** @brief Maximum number of LEDs supported (based on SRAM allocation) */
+#define HPF_WS2812_MAX_LEDS 1024
 
+/** @brief WS2812 HPF control packet. */
+typedef struct __packed {
+	uint8_t opcode; /* WS2812 opcode - always HPF_WS2812_UPDATE. */
+	uint32_t pin; /* GPIO pin number. */
+	uint8_t port; /* GPIO port number. */
+	uint32_t num_leds; /* Number of LEDs to update. */
+} hpf_ws2812_control_packet_t;
+
+/** @brief WS2812 pixel data - 3 bytes per LED (GRB format) */
+typedef struct __packed {
+	uint8_t g; /* Green component */
+	uint8_t r; /* Red component */
+	uint8_t b; /* Blue component */
+} hpf_ws2812_pixel_t;
+
+/** @brief WS2812 HPF shared data structure. */
 typedef struct {
 	struct hpf_shared_data_lock lock;
-	hpf_ws2812_data_packet_t data;
+	hpf_ws2812_control_packet_t control;
+	hpf_ws2812_pixel_t pixels[HPF_WS2812_MAX_LEDS];
 } hpf_ws2812_mbox_data_t;
 
 #ifdef __cplusplus
