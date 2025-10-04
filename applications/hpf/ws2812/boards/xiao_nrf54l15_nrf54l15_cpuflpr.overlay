@@ -23,8 +23,9 @@
 	status = "disabled";
 };
 
+/* Enable GPIO2 - FLPR can only access Port 2 pins (P2.0-P2.10) via VIO */
 &gpio2 {
-	status = "disabled";
+	status = "okay";
 };
 
 &gpiote20 {
